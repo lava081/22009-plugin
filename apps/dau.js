@@ -93,7 +93,6 @@ export class dau extends plugin {
         }
         let group_id
         group_id = e.guild_id || e.group_id
-        console.log(group_id)
         if (!group_list[today].includes(group_id)) {
             group_list[today].push(group_id);
             yamlString = yaml.dump(group_list);
