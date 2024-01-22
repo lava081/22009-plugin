@@ -5,7 +5,7 @@ export class ignore_bot extends plugin {
             name: "ignore_bot",
             dsc: "手工过滤机器人",
             event: "message",
-            priority: -1000001,
+            priority: -1000010,
             rule: [
                 {
                     reg: "",
@@ -21,13 +21,13 @@ export class ignore_bot extends plugin {
         })
     }
     async ignore_bot(e){
-        if(ignone_qq.includes(e.at) || ignone_qq.includes(e.user_id))
+        if(ignone_qq.includes(e.at))
             return;
 
         //按号码段过滤群机器人
-        else if((e.at>2854000000 && e.at<2855000000) || (e.user_id>2854000000 && e.user_id<2855000000))
+        else if((e.at>2854000000 && e.at<2855000000))
             return;
-        else if((e.at>3889000000 && e.at<3890000000) || (e.user_id>3889000000 && e.user_id<3890000000))
+        else if((e.at>3889000000 && e.at<3890000000))
             return;
         else 
             return false;

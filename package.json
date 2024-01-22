@@ -1,0 +1,24 @@
+{
+  "name": "22009-plugin",
+  "version": "0.0.1",
+  "github": "https://github.com/lava081/22009-plugin",
+  "gitee": "https://gitee.com/lava081/22009-plugin",
+  "type": "module",
+  "scripts": {
+    "log": "conventional-changelog -p angular -i CHANGELOG.md -s -r 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lava081/22009-plugin.git"
+  },
+  "author": "lava081",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/lava081/22009-plugin/issues"
+  },
+  "homepage": "https://github.com/lava081/22009-plugin#readme",
+  "dependencies": {
+    "conventional-changelog-cli": "^4.1.0",
+    "js-yaml":"^4.1.0"
+  }
+}
