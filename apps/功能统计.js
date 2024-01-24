@@ -21,10 +21,12 @@ export class FunctionCounter extends plugin {
         {
           reg: "^#?写入功能统计$",
           fnc: "write",
+          permission: "master",
         },
         {
           reg: "^#?功能统计$",
           fnc: "calc",
+          permission: "master",
         },
       ]
     })
