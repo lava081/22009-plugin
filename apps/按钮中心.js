@@ -34,3 +34,42 @@ export class example3 extends plugin {
     return
   }
 }
+
+/* button文件参考 */
+/*
+export default class Button {
+  constructor() {
+    this.plugin = {
+      name: "按钮中心",
+      dsc: "按钮中心",
+      priority: 100,
+      rule: [
+        {
+          reg: '^#按钮中心$',
+          fnc: 'buttonCenter'
+        }
+      ]
+    }
+  }
+  async buttonCenter(e){
+    const list = [
+      [
+        { label: '绑定uid', data: `/原神绑定` },
+        { label: '扫码登录', data: `/扫码登录` }, 
+        { label: '更新面板', data: `/原神更新面板` },
+      ],[
+        { label: '体力', data: `/原神体力` },
+        { label: '签到', data: `/原神签到` },
+        { label: '深渊', data: `/喵喵深渊` },
+        { label: '转生', data: `/转生` },
+      ],[
+        { label: '今日素材', data: `/今日素材` },
+        { label: '帮助', data: `/帮助` },
+        { label: '模拟抽卡', data: `/十连` },
+        { label: '推荐群聊', enter: true}
+      ]
+    ]
+    return Bot.Button(list)
+  }
+}
+*/
