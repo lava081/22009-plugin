@@ -1,0 +1,42 @@
+{
+  "notice":646247164,
+  "ignore_group":[
+    "102073196-F3F1B29C17A5927A3188F71B5B426D79",
+    "102073196-FFBF9FDE0EE2E2EA2C07D056938821E8"
+  ],
+  "msg":[
+    { "key": "text_0", "values": ["@everyone\r#异世界冒险题材文游上新，点击 穿越 按钮来试试吧！\r\r>更多暖群神器等待你的发掘\r您的每次点击，都在帮助我成为更好的自己喵～"]}
+  ],
+  "button":[
+    [
+      {"label":"穿越","callback":"/降临异世界"},
+      {"label":"野外狩猎","callback":"/狩猎"},
+      {"label":"我要转职","callback":"/我要转职"}
+    ],[
+      {"label":"转生","callback":"/转生"},
+      {"label":"抽卡","callback":"/抽卡"},
+      {"label":"御神签","callback":"/御神签"},
+      {"label":"骰子","callback":"/r 1 6"}
+    ],[
+      {"label":"","callback":"/扫雷"},
+      {"label":"","callback":"/扫雷"},
+      {"label":"扫","callback":"/扫雷","style":"0"},
+      {"label":"","callback":"/扫雷"},
+      {"label":"","callback":"/扫雷"},
+      {"label":"","callback":"/扫雷"},
+      {"label":"1","callback":"/扫雷","style":"0"},
+      {"label":"雷","callback":"/扫雷","style":"0"},
+      {"label":"1","callback":"/扫雷","style":"0"},
+      {"label":"","callback":"/扫雷"}
+    ],[
+      {"label":"面板","callback":"/原神更新面板"},
+      {"label":"扫码","callback":"/扫码登录"},
+      {"label":"签到","callback":"/签到"},
+      {"label":"排行","callback":"/胡桃排行"},
+      {"label":"深渊","callback":"/喵喵深渊"}
+    ],[
+      {"label":"交流群","link":"http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=zsw8GA8I0KhA9WXDG0NiZaFIzz-8HO-I&authKey=ih4sSjFwN2pj4%2FqTLNEym6zn0U0YsiAOjdRTVu%2F9%2FlT14t%2FsS8zF0AdlCpi6IHMO&noverify=0&group_code=867598426"},
+      {"label":"拉我入群","link":"https://qun.qq.com/qunpro/robot/qunshare?robot_uin=2854216359&robot_appid=102073196&biz_type=0"}
+    ]
+  ]
+}
