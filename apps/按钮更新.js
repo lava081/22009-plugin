@@ -21,14 +21,6 @@ export class UpdateButton extends plugin {
     let cmd = ""
     if (!fs.existsSync(Path) || this.e.msg.includes('下载')){
       await this.reply(`开始下载${url}`)
-      cmd = `mkdir ${Path}`
-      if(!fs.existsSync(Path))
-        exec(cmd, { cwd: process.cwd(), stdio: 'inherit' }, (error) => {
-          if (error) 
-            this.reply(`文件夹创建错误：\n${error}`)
-          else 
-            this.reply(`下载中，耐心等待，保存路径${Path}`)
-        })
       cmd = `git clone --depth=1 ${url} ${Path}`
       exec(cmd, { cwd: process.cwd(), stdio: 'inherit' }, (error) => {
         if (error) 

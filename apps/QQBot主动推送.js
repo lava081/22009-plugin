@@ -91,8 +91,8 @@ export class QQBotVoluntarilyPush extends plugin {
     for (const openid of group){
       if(!(msg.ignore_group.includes(openid)))
         try{
-          await Bot[e.self_id].pickGroup(openid).sendMsg(message)
-          await sleep(Math.floor(Math.random()*10000)+1000)
+          Bot[e.self_id].pickGroup(openid).sendMsg(message)
+          await sleep(100)
           success_group.push(openid)
         }catch(error){}
     }
