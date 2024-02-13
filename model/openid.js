@@ -1,7 +1,7 @@
 import { Sequelize, DataTypes } from 'sequelize'
 
 class User {
-  static init () {
+  static async init () {
     const sequelize = new Sequelize({
       dialect: 'sqlite',
       storage: './data/22009-plugin/openid.db',
@@ -40,15 +40,21 @@ class User {
     }, {})
 
     /** 同步 */
-    sequelize.sync().then(() => {
-      console.log('数据库同步成功')
-    }).catch(error => {
-      console.error('数据库同步出错:', error)
-    })
+    try {
+      await sequelize.sync();
+      console.log('数据库同步成功');
+    } catch (error) {
+      console.error('数据库同步出错:', error);
+    }
+  }
+
+  static async UpdateUser (updatedData) {
+    const user = await this.User.findOne({ where: { user_id: updatedData.user_id } })
+    if(!user)
+      return await this.User.create(updatedData)
+    else 
+      return await this.User.update(updatedData, { where: { user_id: updatedData.user_id } })
   }
 }
-
-/** 初始化数据库 */
-User.init()
 
 export default User
