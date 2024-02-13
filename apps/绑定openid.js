@@ -1,8 +1,4 @@
-import fs from 'fs'
-import yaml from 'js-yaml'
-import chokidar from 'chokidar'
-const rootPath = `./plugins/22009-plugin/data` 
-const folderPath = `${rootPath}/QQBotRelation`  //数据存放路径
+import User from '../model/openid.js'
 
 export class OpenIdtoId extends plugin {
   constructor () {
@@ -34,45 +30,54 @@ export class OpenIdtoId extends plugin {
   }
 
   async giveNickname (e) {
-    if (IdtoQQ[e.self_id])
-      if(IdtoQQ[e.self_id][e.user_id]){
-        this.e.sender.user_id = IdtoQQ[e.self_id][e.user_id]?.qq
-        this.e.sender.nickname = `${IdtoQQ[e.self_id][e.user_id]?.nickname}`
-        this.e.sender.card = `${IdtoQQ[e.self_id][e.user_id]?.nickname}`
+    if (e.adapter == 'QQBot') {
+      const user = await User.User.findOne({ where: { user_id: e.user_id } })
+      if(user) {
+        this.e.sender.user_id = user.qq
+        this.e.sender.nickname = user.nickname
+        this.e.sender.card = user.nickname
+        // this.e.user_id = user.qq
       }
+    }
     return false
   }
 
   async transformerCounter (e) {
-    let count = 0;
-    for (var User in IdtoQQ[e.self_id])
-      count++
-    this.reply(`收录用户数: ${count}`)
+    await User.User.count({
+      where: {
+        self_id: e.self_id
+      }
+    }).then(count => {
+      this.reply(`收录用户数: ${count}`)
+    })
     return false
   }
   async transformer (e) {
-    let search_id  = e.msg.replace(/^#?身份查询/,'').replace(/ /g, '')
+    let search_id  = e.msg.replace(/^#?身份查询/,'').trim()
     if (search_id == '') 
       search_id = e.user_id
     let openid = []
-    let self_id
-    self_id = search_id.match(/^(\d{9})-/)
-    if ( self_id ) {
-      self_id = self_id[1].replace(/-/,'')
-      if(IdtoQQ[self_id][search_id]?.qq)
-        openid.push([IdtoQQ[self_id][search_id], search_id])
+    // 构建查询条件
+    let where
+    if(Number(search_id)) {
+      where = { qq: Number(search_id) }
+    } else if(search_id.match(/^(\d{9})-/)) {
+      where = { user_id: search_id }
+    } else {
+      where = { nickname: search_id }
     }
-    else {
-      for (self_id in IdtoQQ)
-        for (const User in IdtoQQ[self_id])
-          if (IdtoQQ[self_id][User].nickname.match(search_id) || IdtoQQ[self_id][User].qq == (+search_id))
-            openid.push([IdtoQQ[self_id][User], User])
-    }
+    await User.User.findAll({ where })
+    .then(users => {
+      users.forEach(user => {
+        openid.push(user)
+      })
+    })
+    
     if (openid.length == 0) 
       this.reply(`暂未收录`)
     else 
       for(const i in openid){
-        await this.reply([`\r#查询结果\r\r>QQ: ${openid[i][0].qq}\r\r>昵称: ${openid[i][0].nickname}\r\rUserID: ${openid[i][1]}\r头像: `,segment.image(`http://q.qlogo.cn/headimg_dl?dst_uin=${openid[i][0].qq}&spec=640&img_type=jpg`)])
+        await this.reply([`\r#查询结果\r\r>QQ: ${openid[i].qq}\r\r>昵称: ${openid[i].nickname}\r\rUserID: ${openid[i].user_id}\r头像: `,segment.image(`http://q.qlogo.cn/headimg_dl?dst_uin=${openid[i].qq}&spec=640&img_type=jpg`)])
         if ( i == 10 ){
           await this.reply(`重名${openid.length}人，显示前十人`)
           return false
@@ -82,55 +87,25 @@ export class OpenIdtoId extends plugin {
   }
 
   async writeOpenid (e) {
-    const filePath = `${folderPath}/${e.self_id}.yaml`
-    let nickname = e.msg.replace(/^#?(id|ID)绑定/,'').replace(/ /,'').replace(/^\d+/,'')
-    const qq = e.msg.replace(/^#?(id|ID)绑定/,'').replace(/ /,'').replace(`${nickname}`,'')
+    let nickname = e.msg.replace(/^#?(id|ID)绑定/,'').replace(/^\d+/,'').trim()
+    const qq = e.msg.replace(/^#?(id|ID)绑定/,'').replace(`${nickname}`,'').replace(/ /,'')
     if (qq == ''){
       this.reply(`请输入qq号和昵称`)
       return false
     }
-    if(!IdtoQQ[e.self_id])
-      IdtoQQ[e.self_id] = {}
-    IdtoQQ[e.self_id][e.user_id] = {}
-    IdtoQQ[e.self_id][e.user_id].qq = +qq
-    IdtoQQ[e.self_id][e.user_id].nickname = nickname
-    fs.writeFileSync(filePath, yaml.dump(IdtoQQ[e.self_id]), 'utf8')
-    await this.reply(`绑定成功！如需更换绑定信息，重新绑定即可`)
+    let user = await User.User.findOne({ where: { user_id: e.user_id } })
+    const updatedData = {
+      user_id: e.user_id,
+      qq: Number(qq),
+      nickname,
+      self_id: e.self_id
+    }
+    if(!user)
+      await User.User.create(updatedData)
+    else 
+      await User.User.update(updatedData, { where: { user_id: e.user_id } })
+    await this.reply(`绑定中,如需更换绑定信息，重新绑定即可`)
     e.msg = `#身份查询${e.user_id}`
     this.transformer (e)
-  }
-}
-
-function sleep (ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
-export let IdtoQQ = {}
-
-if (!fs.existsSync(folderPath))
-  fs.mkdirSync(folderPath, { recursive: true })
-const files = fs.readdirSync(folderPath).filter(file => file.endsWith('.yaml'))
-// logger.info(files)
-for (let file of files) {
-  const form = yaml.load(fs.readFileSync(`${folderPath}/${file}`, 'utf8'))
-  const self_id = file.replace('.yaml', '')
-  IdtoQQ[self_id] = form
-  try {
-    const watcher = chokidar.watch(`${folderPath}/${file}`)
-  
-    watcher.on('change', async () => {
-        await sleep(1500)
-        const form = yaml.load(fs.readFileSync(`${folderPath}/${file}`, 'utf8'))
-        const self_id = file.replace('.yaml', '')
-        IdtoQQ[self_id] = form
-        logger.mark(`[绑定openid]${file}成功重载`)
-      })
-  
-    watcher.on('error', (error) => {
-        logger.error(`[绑定openid]发生错误: ${error}`)
-        watcher.close()
-    })
-  } catch (err) {
-    logger.error(err)
   }
 }
