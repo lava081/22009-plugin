@@ -23,6 +23,10 @@ export class OpenIdtoId extends plugin {
           fnc: 'writeOpenid'
         },
         {
+          reg: /^#?id解绑$/i,
+          fnc: 'deleteOpenid'
+        },
+        {
           reg: '^#?身份查询',
           fnc: 'transformer'
         },
@@ -98,10 +102,10 @@ export class OpenIdtoId extends plugin {
   }
 
   async writeOpenid (e) {
-    let nickname = e.msg.replace(/^#?(id|ID)绑定/,'').replace(/^\d+/,'').trim()
+    let nickname = e.msg.replace(/^#?(id|ID)绑定/,'').trim().replace(/^\d+/,'').trim()
     const qq = e.msg.replace(/^#?(id|ID)绑定/,'').replace(`${nickname}`,'').replace(/ /,'')
     if (qq == ''){
-      this.reply(`请输入qq号和昵称`)
+      this.reply(`指令: [/ID绑定+qq号+昵称] (mqqapi://aio/inlinecmd?command=${encodeURIComponent(`/ID绑定`)}&reply=true&enter=false)`)
       return false
     }
     const updatedData = {
@@ -114,6 +118,16 @@ export class OpenIdtoId extends plugin {
     await this.reply(`绑定中,如需更换绑定信息，重新绑定即可`)
     e.msg = `#身份查询${e.user_id}`
     this.transformer (e)
+  }
+
+  async deleteOpenid (e) {
+    const user = await User.User.findOne({ where: { user_id: e.user_id } })
+    if (user) {
+      await user.destroy()
+      await this.reply (`成功解绑`)
+    } else {
+      await this.reply (`未找到绑定信息`)
+    }
   }
 
   pickMember (userID) {
