@@ -1,135 +1,59 @@
-import fs from 'fs'
-import yaml from 'js-yaml'
+import User from '../model/openid.js'
 
-const groupPath = './plugins/22009-plugin/data/group_id.yaml'
-const userPath = './plugins/22009-plugin/data/user_id.yaml'
 const calcDays = 30 //计算天数
 const days = 7 //显示天数
-const sbtxOnly = true //仅统计官方机器人数据
 
-let data = {}
-if (fs.existsSync(userPath))
-    data = fs.readFileSync(userPath, 'utf8');
-else{
-    fs.writeFileSync(userPath, yaml.dump(data), 'utf8');
-}
-let user_list = yaml.load(data) || {};
-if (fs.existsSync(groupPath))
-    data = fs.readFileSync(groupPath, 'utf8');
-else{
-    fs.writeFileSync(groupPath, yaml.dump(data), 'utf8');
-}
-let group_list = yaml.load(data) || {};
+/** 另外起一个监听器，直接源头监听QQBot */
+Bot.on('message', async data => {
+  if (data.adapter == 'QQBot'){
+    User.addUserToGroup (data.user_id, data.group_id, data.self_id)
+  }
+  return
+})
 
 export class dau extends plugin {
-    constructor() {
-        super({
-            name: "dau",
-            dsc: "dau",
-            event: "message",
-            priority: -1000005,
-            rule: [
-                {
-                    reg: "^#?(qqbot)?dau$",
-                    fnc: "dau_read",
-                },
-                {
-                    reg: "",
-                    fnc: "dau_write",
-                    log: false
-                },
-                {
-                    reg: "^#?清理(过期)?(qqbot)?dau$",
-                    fnc: "dau_cleanup",
-                },
-            ]
-        })
-        this.task = {
-            name: '清理过期dau',
-            fnc: () => this.dau_cleanup(),
-            cron: `0 5 * * *`
-        }
-        
-    }
-    async dau_cleanup() {
-        const today = new Date().toLocaleDateString()
-        for (const date in user_list) {
-            if (user_list[date]){
-                if(date != today){
-                    user_list[date] = user_list[date].length || user_list[date]
-                    group_list[date] = group_list[date].length || group_list[date]
-                }else{
-                    user_list[date] = user_list[date]
-                    group_list[date] = group_list[date]
-                }
-            }
-        }
-        fs.writeFileSync(userPath, yaml.dump(user_list), 'utf8')
-        fs.writeFileSync(groupPath, yaml.dump(group_list), 'utf8')
-        try {
-            await this.reply('清理完成')
-        }catch(error){}
-        return
-    }
+  constructor() {
+      super({
+          name: "dau",
+          dsc: "dau",
+          event: "message",
+          priority: 100,
+          rule: [
+              {
+                  reg: /^#?dau$/i,
+                  fnc: "dau_read",
+              },
+          ]
+      })
+  }
 
-    async dau_write (e){
-      if(sbtxOnly && e.adapter != 'QQBot' && e.adapter != 'QQGuild')
-        return false
-      else {
-        const today = new Date().toLocaleDateString(); // 获取今天的日期
+  async dau_read(e) {
+    const today = await User.getLocaleDate(new Date())
+    let msg = `当前日期: ${today}\r#日活统计\r\r>`
+    const dates = []
+    const order = [['DATE', 'DESC']]
+    
+    /** 获取日期列表 */
+    const daysDAU = await User.DAU.findAll({order, limit : calcDays})
+    daysDAU.forEach((day) => {
+      dates.push(day.DATE)
+    })
 
-        if (!user_list[today]) {
-            user_list[today] = [];
-        }
-        if (!group_list[today]) {
-            group_list[today] = [];
-        }
-
-        let yamlString
-        if (!user_list[today].includes(e.user_id)) {
-            user_list[today].push(e.user_id);
-            yamlString = yaml.dump(user_list);
-            fs.writeFileSync(userPath, yamlString, 'utf8');
-        }
-        let group_id
-        group_id = e.guild_id || e.group_id
-        if (!group_list[today].includes(group_id)) {
-            group_list[today].push(group_id);
-            yamlString = yaml.dump(group_list);
-            fs.writeFileSync(groupPath, yamlString, 'utf8');
-        }
-        
-        return false
+    let UsersCnt = 0
+    let GroupsCnt = 0
+    for (var date in dates) {
+      const UsersToday = await User.UserDAU.count({ where: { DATE: dates[date], self_id: e.self_id }})
+      const GroupsToday = await User.GroupDAU.count({ where: { DATE: dates[date], self_id: e.self_id }})
+      if(Number(date)){
+        UsersCnt += UsersToday
+        GroupsCnt += GroupsToday
       }
+      if (Number(date) < days)
+        msg += `${dates[date]}:  ${UsersToday}人  ${GroupsToday}群\r`
     }
 
-    async dau_read (e){
-        let user_sum = 0;
-        let group_sum = 0;
-        let day = 0;
-        const today = new Date().getTime()
-        const xDaysAgo = []
-        const displayDays = []
-        for(let i = calcDays; i >= 0; i--) {
-            const dayNow = new Date(today - i * 24 * 60 * 60 * 1000).toLocaleDateString()
-            xDaysAgo.push(dayNow)
-            if(i < days)
-                displayDays.push(dayNow)
-        }
-        const dayNow = new Date(today).toLocaleDateString()
-        let userCounts = {};
-        for (const date of xDaysAgo) {
-            if (user_list[date]){
-                if(displayDays.includes(date))
-                    userCounts[date] = `${user_list[date].length || user_list[date]}人 ${group_list[date].length || group_list[date]}群`;
-                if(date != dayNow){
-                    user_sum += user_list[date].length || user_list[date]
-                    group_sum += group_list[date].length || group_list[date]
-                    day++
-                }
-            }
-        }
-        e.reply(`${yaml.dump(userCounts)}\n${day}日平均：${Math.floor(user_sum/day) || 0}人 ${Math.floor(group_sum/day) || 0}群`)
-        this.dau_write(e)
-    }
+    msg += `\r${date}日平均:  ${UsersCnt / date}人  ${GroupsCnt / date}群`
+
+    await this.reply(msg)
+  }
 }

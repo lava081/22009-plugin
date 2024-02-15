@@ -1,20 +1,10 @@
 import User from '../model/openid.js'
 
-Bot.QQToOpenid = async function (qq, e) {
-  const user = await User.User.findOne({ where: { qq, self_id: e.self_id } })
-  if (user) {
-    qq = user.user_id
-  }
-  qq = qq.trim().split('-')
-  qq = qq[1] || qq[0]
-  return qq
-}
-
 export class OpenIdtoId extends plugin {
   constructor () {
     super({
       name: '绑定qq号',
-      dsc: '复读用户发送的内容，然后撤回',
+      dsc: '供QQBot用户绑定自己的信息',
       event: 'message',
       priority: -1000012,
       rule: [
@@ -31,42 +21,25 @@ export class OpenIdtoId extends plugin {
           fnc: 'transformer'
         },
         {
-          reg: '^#?用户数量',
-          fnc: 'transformerCounter'
+          reg: '^#?群组查询',
+          fnc: 'transformerGroup'
         },
         {
-          reg: "",
-          fnc: "giveNickname",
-          log: false
+          reg: '^#?用户数量',
+          fnc: 'transformerCounter'
         },
       ]
     })
   }
 
-  async giveNickname (e) {
-    if (e.adapter == 'QQBot') {
-      const user = await User.User.findOne({ where: { user_id: e.user_id } })
-      if(user) {
-        this.e.sender.user_id = user.qq
-        this.e.sender.nickname = user.nickname
-        this.e.sender.card = user.nickname
-        this.e.user_id = user.qq
-        this.e.author.id = user.qq
-        /** 获取对应用户头像 */
-        this.e.getAvatarUrl = (size = 0, id = user.qq) => `https://q1.qlogo.cn/g?b=qq&s=${size}&nk=${id}`
-        this.e.group.pickMember = (userId) => {
-          return this.pickMember(userId)
-        }
-      }
-    }
+  async transformerCounter (e) {
+    const count = await User.User.count({ where: { self_id: e.self_id } })
+    const countGroup = await User.Group.count({ where: { self_id: e.self_id } })
+    const countDAU = await User.DAU.count()
+    this.reply(`收录用户数: ${count}\n收录群组数: ${countGroup}\n收录天数(全局): ${countDAU}`)
     return false
   }
 
-  async transformerCounter (e) {
-    const count = await User.User.count({ where: { self_id: e.self_id } })
-    this.reply(`收录用户数: ${count}`)
-    return false
-  }
   async transformer (e) {
     let search_id  = e.msg.replace(/^#?身份查询/,'').trim()
     if (search_id == '') 
@@ -92,13 +65,28 @@ export class OpenIdtoId extends plugin {
       this.reply(`暂未收录`)
     else 
       for(const i in openid){
-        await this.reply([`\r#查询结果\r\r>QQ: ${openid[i].qq}\r\r>昵称: ${openid[i].nickname}\r所属机器人: ${openid[i].self_id}\r\rUserID: ${openid[i].user_id}\r头像: `,segment.image(`http://q.qlogo.cn/headimg_dl?dst_uin=${openid[i].qq}&spec=640&img_type=jpg`)])
+        await this.reply([`\r#查询结果\r\r>QQ: ${openid[i].qq}\r\r>昵称: ${openid[i].nickname}\r活跃群聊数: ${await User.UserGroups.count({ where: { user_id: openid[i].user_id }})}\r活跃天数: ${await User.UserDAU.count({ where: { user_id: openid[i].user_id }})}\r所属机器人: ${openid[i].self_id}\r\rUserID: ${openid[i].user_id}\r头像: `,segment.image(`http://q.qlogo.cn/headimg_dl?dst_uin=${openid[i].qq}&spec=640&img_type=jpg`)])
         if ( i == 10 ){
           await this.reply(`重名${openid.length}人，显示前十人`)
           return false
         }
       }
     return false
+  }
+
+  async transformerGroup (e) {
+    let search_id  = e.msg.replace(/^#?群组查询/,'').trim()
+    if (search_id == '') 
+      search_id = e.group_id
+    // 构建查询条件
+    let where = { group_id: search_id }
+    
+    const group = await User.Group.findOne({ where })
+    
+    if (!group) 
+      this.reply(`暂未收录`)
+    else 
+      await this.reply([`\r#查询结果\r\rGroupID: ${group.group_id}\r\r>活跃用户数: ${await User.UserGroups.count({ where: { group_id: group.group_id }})}\r活跃天数: ${await User.GroupDAU.count({ where: { group_id: group.group_id }})}`])
   }
 
   async writeOpenid (e) {
@@ -128,30 +116,5 @@ export class OpenIdtoId extends plugin {
     } else {
       await this.reply (`未找到绑定信息`)
     }
-  }
-
-  pickMember (userID) {
-    return {
-      member: this.member(userID),
-      getAvatarUrl: (size = 640,id = userID) => `https://q1.qlogo.cn/g?b=qq&s=${size}&nk=${id}`
-    }
-  }
-
-  member (userId) {
-    const member = {
-      info: {
-        group_id: this.e.group_id,
-        user_id: userId,
-        nickname: '',
-        last_sent_time: ''
-      },
-      group_id: this.e.group_id,
-      is_admin: false,
-      is_owner: false,
-      /** 获取头像 */
-      getAvatarUrl: (size = 640,id = userId) => `https://q1.qlogo.cn/g?b=qq&s=${size}&nk=${id}`,
-      mute: async (time) => ''
-    }
-    return member
   }
 }
