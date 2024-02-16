@@ -1,15 +1,6 @@
-import fs from 'fs'
-import yaml from 'yaml'
-export let FncCnt = {}
-const rootPath = `./plugins/22009-plugin/data/` 
-const Path = rootPath + 'FncCnt.yaml'
-if (fs.existsSync(Path)){
-  let form = {}
-  form = yaml.parse(fs.readFileSync(Path, 'utf8'))
-  for (const logFnc in form)
-    FncCnt[logFnc] = new Set(form[logFnc])
-}
-
+import User from '../model/openid.js'
+/** 计算天数 */
+const calcDays = 7
 export class FunctionCounter extends plugin {
   constructor() {
     super({
@@ -19,49 +10,51 @@ export class FunctionCounter extends plugin {
       priority: 100,
       rule: [
         {
-          reg: "^#?写入功能统计$",
-          fnc: "write",
-          permission: "master",
-        },
-        {
           reg: "^#?功能统计$",
           fnc: "calc",
           permission: "master",
         },
       ]
     })
-    this.task = {
-      name: '[功能统计]写入文件',
-      fnc: () => this.write(),
-      cron: `13/30 * * * *`
-    }
-  }
-
-  async write () {
-    let form = {}
-    for (const logFnc in FncCnt)
-      form[logFnc] = Array.from(FncCnt[logFnc])
-    fs.writeFileSync(Path, yaml.stringify(form), 'utf8')
   }
 
   async calc (e) {
-    let msg = []
-    for (const logFnc in FncCnt) {
-      // 将每个功能名称和对应人数转换为格式化的字符串并推入数组
-      const count = FncCnt[logFnc].size;
-      msg.push({ name: `${logFnc.replace(/\_/g,'-').replace(/\[/g,'(').replace(/\]/g,')')}`, count });
-    }
+    /** 实际发送的消息 */
+    const msg = []
+    /** 功能列表 */
+    const FncCnt = []
+    /** 日期列表 */
+    const dates = []
 
-    // 按照count属性进行排序
-    msg.sort((a, b) => b.count - a.count)
-
-    // 构造最终回复消息
-    const replyMsg = ['\r#功能统计'];
-    msg.forEach(item => {
-      replyMsg.push(`\r>${item.name} ${item.count}人`);
+    /** 获取日期列表 */
+    await User.DAU.findAll({ order: [['DATE', 'DESC']], limit: calcDays })
+    .then((days) => {
+      days.forEach((day) => {
+        dates.push(day.DATE)
+      })
     })
 
-    e.reply(replyMsg);
+    msg.push(`\r#${dates.length}日功能统计\r`)
+
+    /** 获取功能列表 */
+    await User.Fnc.findAll()
+    .then(async(fncs) => {
+      for (const fnc of fncs) {
+        const logFnc = fnc.logFnc.replace(/\_/g,'-').replace(/\[/g,'(').replace(/\]/g,')')
+        let cnt = 0
+        for (const DATE of dates) {
+          cnt += await User.UserFnc.count({ where: { DATE, logFnc: fnc.logFnc, self_id: e.self_id } })
+        }
+        FncCnt.push({ logFnc, cnt })
+      }
+    })
+
+    // 按照count从大到小进行排序
+    FncCnt.sort((a, b) => b.count - a.count)
+    FncCnt.forEach(fnc => {
+      msg.push(`\r>${fnc.logFnc}:  ${fnc.cnt}人`)
+    })
+
+    await this.reply(msg)
   }
 }
-
