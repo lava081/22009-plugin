@@ -223,16 +223,18 @@ class User {
   static async addUserToGroup (user_id, group_id, self_id) {
     const DATE = this.getLocaleDate(new Date())
 
-    const user = await this.User.findOne({ where: { user_id } })
-    const group = await this.Group.findOne({ where: { group_id } })
-    const date = await this.DAU.findOne({ where: { DATE } })
+    /** 载入 */
+    let user = await this.User.findOne({ where: { user_id } })
+    let group = await this.Group.findOne({ where: { group_id } })
+    let date = await this.DAU.findOne({ where: { DATE } })
 
 
     /** 自动创建所需用户和群组和日期 */
     /** 自动创建日期 */
     if (!date) {
       const updatedData = { DATE }
-      await this.DAU.create(updatedData)
+      await this.DAU.create(updatedData)  // 创建日期
+      date = await this.DAU.findOne({ where: { DATE } })  // 重新载入
     }
     if (!user) {
       /** 临时用户身份 */
@@ -243,6 +245,7 @@ class User {
         self_id
       }
       await this.User.create(updatedData)
+      user = await this.User.findOne({ where: { user_id } })
     }
     if (!group) {
       const updatedData = {
@@ -250,6 +253,7 @@ class User {
         self_id
       }
       await this.Group.create(updatedData)
+      group = await this.Group.findOne({ where: { group_id } })
     }
 
     /** 建立关联，有唯一索引所以不用去重 */
