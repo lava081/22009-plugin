@@ -1,4 +1,4 @@
-const msg = '使用前缀 #原神 和 #星铁 以及 #绝区 区分游戏\n如看不到本消息，请升级或更换NTQQ'
+const msg = ['使用前缀 #原神 和 #星铁 以及 #绝区 区分游戏\n如看不到本消息，请升级或更换NTQQ']
 export class example3 extends plugin {
   constructor () {
     super({

@@ -10,16 +10,8 @@ export class example extends plugin {
           reg: '^#?友情链接',
           fnc: 'yqlj',
         },
-        {
-          reg: '^#?推荐群聊$',
-          fnc: 'tjql',
-        },
       ],
     });
-  }
-
-  async tjql (e) {
-    await this.reply(`\r#推荐群聊`)
   }
 
   async yqlj(e) {
@@ -50,29 +42,8 @@ export class example extends plugin {
         { label: '珊珊', link: `https://qun.qq.com/qunpro/robot/qunshare?robot_uin=3889004815&robot_appid=102081872` },
       ],
     ]
-    const md = await toMd(e, buttons)
-    e.reply(md)
+    await this.reply([e.msg, Bot.Button(buttons)])
     return true
   }
 
-}
-
-const toMd = async (e, buttons) => {
-  const result = []
-  result.push({
-    type: 'markdown',
-    custom_template_id: e.bot.config.markdown.id,
-    params: [
-      {
-        key: ([4, '4'].includes(e.bot.config.markdown.type))?'text_1':e.bot.config.markdown.text,
-        values: ['\r#友情分享链接\r愿你每天都有好心情\r下方按钮可直接点击添加机器人，具体功能直接自行研究']
-      },
-    ]
-  })
-
-  if (buttons) 
-    for (const button of buttons)
-      result.push(Bot.Button(button))
-
-  return result
 }
