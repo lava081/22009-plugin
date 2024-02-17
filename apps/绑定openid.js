@@ -1,4 +1,5 @@
 import User from '../model/openid.js'
+import { Op } from 'sequelize'
 
 export class OpenIdtoId extends plugin {
   constructor () {
@@ -33,10 +34,28 @@ export class OpenIdtoId extends plugin {
   }
 
   async transformerCounter (e) {
-    const count = await User.User.count({ where: { self_id: e.self_id } })
-    const countGroup = await User.Group.count({ where: { self_id: e.self_id } })
-    const countDAU = await User.DAU.count()
-    this.reply(`收录用户数: ${count}\n收录群组数: ${countGroup}\n收录天数(全局): ${countDAU}`)
+    let where
+    where = { self_id: e.self_id }
+    const total = {
+      User: await User.User.count({ where }),
+      Group: await User.Group.count({ where }),
+      DAU: await User.DAU.count()
+    }
+    let DATE = new Date()
+    DATE.setDate(DATE.getDate() - 1)
+    DATE = DATE.toISOString()
+    where = { 
+      self_id: e.self_id,
+      createdAt: {
+        [Op.gte]: DATE,
+      }
+    }
+    const yesterday = {
+      User: await User.User.count({ where }),
+      Group: await User.Group.count({ where }),
+    }
+
+    this.reply(`>收录用户数: ${total.User}  (昨日新增: ${yesterday.User})\n收录群组数: ${total.Group}  (昨日新增${yesterday.Group})\n收录天数: ${total.DAU}`)
     return false
   }
 
@@ -84,9 +103,10 @@ export class OpenIdtoId extends plugin {
     const group = await User.Group.findOne({ where })
     
     if (!group) 
-      this.reply(`暂未收录`)
+      await this.reply(`暂未收录`)
     else 
       await this.reply([`\r#查询结果\r\rGroupID: ${group.group_id}\r\r>活跃用户数: ${await User.UserGroups.count({ where: { group_id: group.group_id }})}\r活跃天数: ${await User.GroupDAU.count({ where: { group_id: group.group_id }})}`])
+    return
   }
 
   async writeOpenid (e) {
@@ -106,6 +126,7 @@ export class OpenIdtoId extends plugin {
     await this.reply(`绑定中,如需更换绑定信息，重新绑定即可`)
     e.msg = `#身份查询${e.user_id}`
     this.transformer (e)
+    return
   }
 
   async deleteOpenid (e) {
@@ -116,5 +137,6 @@ export class OpenIdtoId extends plugin {
     } else {
       await this.reply (`未找到绑定信息`)
     }
+    return
   }
 }

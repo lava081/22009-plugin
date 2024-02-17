@@ -52,7 +52,7 @@ export class dau extends plugin {
         msg += `${dates[date]}:  ${UsersToday}人  ${GroupsToday}群\r`
     }
 
-    msg += `\r${date}日平均:  ${UsersCnt / date}人  ${GroupsCnt / date}群`
+    msg += `\r${date}日平均:  ${Math.floor(UsersCnt / date)}人  ${Math.floor(GroupsCnt / date)}群`
 
     await this.reply(msg)
   }
