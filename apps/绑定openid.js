@@ -73,24 +73,21 @@ export class OpenIdtoId extends plugin {
     } else {
       where = { nickname: search_id }
     }
-    await User.User.findAll({ where })
-    .then(users => {
-      users.forEach(user => {
+    await User.User.findAll({ where, limit: 10 })
+    .then(async users => {
+      for (const user of users) {
         openid.push(user)
-      })
+        this.e.search_id = user.user_id
+        await this.reply([`\r#查询结果\r\r>QQ: ${user.qq}\r\r>昵称: ${user.nickname}\r活跃群聊数: ${await User.UserGroups.count({ where: { user_id: user.user_id }})}\r活跃天数: ${await User.UserDAU.count({ where: { user_id: user.user_id }})}\r所属机器人: ${user.self_id}\r\rUserID: ${user.user_id}\r头像: `,segment.image(`http://q.qlogo.cn/headimg_dl?dst_uin=${user.qq}&spec=640&img_type=jpg`)])
+        if (openid.length >= 10) {
+          await this.reply(`重名${await User.User.count({ where })}人，显示前十人`)
+          return false
+        }
+      }
     })
     
     if (openid.length == 0) 
       this.reply(`暂未收录`)
-    else 
-      for(const i in openid){
-        await this.reply([`\r#查询结果\r\r>QQ: ${openid[i].qq}\r\r>昵称: ${openid[i].nickname}\r活跃群聊数: ${await User.UserGroups.count({ where: { user_id: openid[i].user_id }})}\r活跃天数: ${await User.UserDAU.count({ where: { user_id: openid[i].user_id }})}\r所属机器人: ${openid[i].self_id}\r\rUserID: ${openid[i].user_id}\r头像: `,segment.image(`http://q.qlogo.cn/headimg_dl?dst_uin=${openid[i].qq}&spec=640&img_type=jpg`)])
-        if ( i == 10 ){
-          await this.reply(`重名${openid.length}人，显示前十人`)
-          return false
-        }
-      }
-    return false
   }
 
   async transformerGroup (e) {
