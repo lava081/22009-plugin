@@ -3,6 +3,7 @@ import chokidar from 'chokidar'
 import User from '../model/openid.js'
 const rootPath = `./plugins/22009-plugin/config`
 const Path = `${rootPath}/config/msg.json`
+const defPath = `${rootPath}/defSet/msg.json`
 let msg = ''
 
 if (fs.existsSync(Path)) {
@@ -48,7 +49,7 @@ export class QQBotVoluntarilyPush extends plugin {
 
   async play (e) {
     if (msg == '')
-      return e.reply(`未配置${Path}`)
+      return e.reply(`未配置${Path}\r参考文件位于${defPath}`)
 
     if (e.msg.match(/预览/)) 
       this.passive_send(e, msg)

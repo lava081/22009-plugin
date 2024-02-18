@@ -55,7 +55,7 @@ export class OpenIdtoId extends plugin {
       Group: await User.Group.count({ where }),
     }
 
-    this.reply(`>收录用户数: ${total.User}  (昨日新增: ${yesterday.User})\n收录群组数: ${total.Group}  (昨日新增${yesterday.Group})\n收录天数: ${total.DAU}`)
+    this.reply(`>收录用户数: ${total.User}  (24h新增: ${yesterday.User})\n收录群组数: ${total.Group}  (24h新增${yesterday.Group})\n收录天数: ${total.DAU}`)
     return false
   }
 
