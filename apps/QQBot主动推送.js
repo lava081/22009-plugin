@@ -1,10 +1,9 @@
 import fs from 'fs'
-import yaml from 'yaml'
 import chokidar from 'chokidar'
+import User from '../model/openid.js'
 const rootPath = `./plugins/22009-plugin/config`
 const Path = `${rootPath}/config/msg.json`
 let msg = ''
-const group = new Set()
 
 if (fs.existsSync(Path)) {
   msg = JSON.parse(fs.readFileSync(Path, 'utf8'))
@@ -50,52 +49,63 @@ export class QQBotVoluntarilyPush extends plugin {
   async play (e) {
     if (msg == '')
       return e.reply(`未配置${Path}`)
-    const message = [
-      {
-        type: 'markdown', // 这里添加多一个类型，其他按照官方文档来。
-        custom_template_id: e.bot.config.markdown.id,
-        params: msg.msg
-      },Bot.Button(msg.button)
-    ]
-    
-    let yamlPath = './plugins/22009-plugin/data/group_id.yaml'
-    const today = new Date().toLocaleDateString()
-    let group_list = yaml.parse(fs.readFileSync(yamlPath, 'utf8'))
-    group_list = group_list[today]
-    for (let item of group_list) 
-      group.add(item)
-    // yamlPath = './plugins/hanhan-plugin/config/config.json'
-    // group_list = yaml.parse(fs.readFileSync(yamlPath, 'utf8'))
-    // group_list = group_list.buttonWhiteGroups
-    // for (let item of group_list) 
-    //   group.add(item)
 
     if (e.msg.match(/预览/)) 
-      this.passive_send(e, msg, message)
+      this.passive_send(e, msg)
     else
-      this.active_send(e, msg, message)
+      this.active_send(e, msg)
+    return
   }
 
-  async passive_send(e, msg, message) {
-    await e.reply(message)
-    await sleep(Math.floor(Math.random()*10000)+1000)
-    await Bot.pickGroup(msg.notice).sendMsg(`目标群聊:${group.size}群`)
-    for (const openid of group) {
-      logger.info(openid)
+  async passive_send(e, msg) {
+    e.reply([...msg.msg, Bot.Button(msg.button)])
+    const group_ids = []
+    const limit = 100
+    const where = { self_id: e.self.id }
+    const cnt = await User.Group.count({where})
+    for (let offset = 0; offset < cnt; offset += limit){
+      const groups = await User.Group.findAll({
+        where,
+        limit,
+        offset
+      })
+      for (const group of groups) {
+        if (!msg.ignore_group.includes(group.group_id))
+          group_ids.push(group.group_id)
+        await sleep(1)
+      }
     }
-    logger.info(msg.ignore_group)
+    logger.mark(group_ids)
+    await Bot.pickGroup(msg.notice).sendMsg(`目标群聊:${group_ids.length}群`)
+    return
   }
 
-  async active_send(e, msg, message) {
-    const success_group = []
-    for (const openid of group){
-      if(!(msg.ignore_group.includes(openid)))
-        try{
-          Bot[e.self_id].pickGroup(openid).sendMsg(message)
-          await sleep(100)
-          success_group.push(openid)
-        }catch(error){}
+  async active_send(e, msg) {
+    e.reply([...msg.msg, Bot.Button(msg.button)])
+    const group_ids = []
+    const promises = []
+    const limit = 100
+    const where = { self_id: e.self.id }
+    const cnt = await User.Group.count({where})
+    for (let offset = 0; offset < cnt; offset += limit){
+      const groups = await User.Group.findAll({
+        where,
+        limit,
+        offset
+      })
+      for (const group of groups) {
+        if (!msg.ignore_group.includes(group.group_id)) {
+          promises.push(Bot[e.self.id].pickGroup(group.group_id).sendMsg([...msg.msg, Bot.Button(msg.button)])
+          .then(() => group_ids.push(group.group_id))
+          .catch((error) => { }))
+        }
+        await sleep(200)
+      }
     }
-    await Bot.pickGroup(msg.notice).sendMsg(`总：${group.size}群\n发送完成：${success_group.length}群`)
+    // 使用 Promise.all() 确保所有异步操作完成后执行回调
+    Promise.allSettled(promises)
+    logger.mark(group_ids)
+    await Bot.pickGroup(msg.notice).sendMsg(`成功群聊:${group_ids.length}群`)
+    return
   }
 }

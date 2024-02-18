@@ -35,7 +35,7 @@ Bot.Markdown = async function (e, data, button = []) {
 
     /** 按钮 */
     const but = await Button(e)
-    let _button = but && but?.length ? [...but, ...button] : [...button]
+    let _button = but && (but?.length && (button?.length + but?.length < 5)) ? [...but, ...button] : [...button]
 
     /** 添加全局按钮 */
     const button2 = [
@@ -153,11 +153,11 @@ async function combination (e, data, but) {
 
     /** 按钮 */
     const button = await Button(e)
-    let _button = button && button?.length ? [...button, ...but] : [...but]
+    let _button = button && (button?.length && (button?.length + but?.length < 5)) ? [...button, ...but] : [...but]
 
     /** 添加全局按钮 */
     const button2 = [
-      {label: '赞助',link: 'https://afdian.net/a/lain52'},
+      {label: '赞助',link: 'https://afdian.net/a/lava081'},
       {label: '交流群',link: 'http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=VyTqcH5UTmnnKmMwYR000_iy4fNQwWXS&authKey=AM6Utt2TRc%2F%2Fwd9KQuxBy01RJT52Kw%2B5kT%2FCcqdhYYKZbVUFHa4%2FIYtjmq5PXbjF&noverify=0&group_code=666260918'},
       {label: '拉群',link: 'https://qun.qq.com/qunpro/robot/qunshare?robot_uin=2854216359&robot_appid=102073196&biz_type=0'},
     ]
