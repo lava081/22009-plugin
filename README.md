@@ -1,7 +1,5 @@
 # 22009-plugin
-适用于Lain-plugin的QQBot/QQGuild适配器的审核和统计插件
-
-## 已跑路
+适用于Lain-plugin的QQBot适配器的统计插件
 
 ## 1.安装插件
 
@@ -25,6 +23,8 @@ git clone --depth=1 https://github.com/lava081/22009-plugin ./plugins/22009-plug
 - [索引库](https://github.com/yhArcadia/Yunzai-Bot-plugins-index)
 - [qq-group-bot](https://github.com/lc-cn/qq-group-bot)
 - [Lain-plugin](https://github.com/Zyy955/Lain-plugin)
+- [基础插件示例](https://github.com/Zyy955/Miao-Yunzai-plugin)
+- [Sequelize](https://sequelize.org/)
 
 <details><summary>最后求个爱发电~您的支持是我更新的动力</summary>
 
