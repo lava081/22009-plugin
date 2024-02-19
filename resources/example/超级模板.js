@@ -31,11 +31,11 @@ Bot.Markdown = async function (e, data, button = []) {
       content
     }
 
-    logger.info(content)
+    logger.mark(content)
 
     /** 按钮 */
     const but = await Button(e)
-    let _button = but && (but?.length && (button?.length + but?.length < 5)) ? [...but, ...button] : [...button]
+    let _button = but && (but?.length && (button?.length + but?.length <= 5)) ? [...but, ...button] : [...button]
 
     /** 添加全局按钮 */
     const button2 = [
@@ -149,11 +149,11 @@ async function combination (e, data, but) {
       params
     }
 
-    logger.info(params)
+    logger.mark(params)
 
     /** 按钮 */
     const button = await Button(e)
-    let _button = button && (button?.length && (button?.length + but?.length < 5)) ? [...button, ...but] : [...but]
+    let _button = button && (button?.length && (button?.length + but?.length <= 5)) ? [...button, ...but] : [...but]
 
     /** 添加全局按钮 */
     const button2 = [

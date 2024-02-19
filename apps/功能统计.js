@@ -50,10 +50,10 @@ export class FunctionCounter extends plugin {
     })
 
     // 按照count从大到小进行排序
-    FncCnt.sort((a, b) => b.count - a.count)
-    FncCnt.forEach(fnc => {
-      msg.push(`\r>${fnc.logFnc}:  ${fnc.cnt}人`)
-    })
+    FncCnt.sort((a, b) => b.cnt - a.cnt)
+    for (let i = 0; i < FncCnt.length && i < 25; i++) {
+      msg.push(`\r>${i + 1}.${FncCnt[i].logFnc}:  ${FncCnt[i].cnt}人`)
+    }
 
     await this.reply(msg)
   }

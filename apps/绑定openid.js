@@ -1,6 +1,11 @@
 import User from '../model/openid.js'
 import { Op } from 'sequelize'
 
+/** 24小时前 */
+let DATE = new Date()
+DATE.setDate(DATE.getDate() - 1)
+DATE = DATE.toISOString()
+
 export class OpenIdtoId extends plugin {
   constructor () {
     super({
@@ -41,9 +46,6 @@ export class OpenIdtoId extends plugin {
       Group: await User.Group.count({ where }),
       DAU: await User.DAU.count()
     }
-    let DATE = new Date()
-    DATE.setDate(DATE.getDate() - 1)
-    DATE = DATE.toISOString()
     where = { 
       self_id: e.self_id,
       createdAt: {
@@ -102,7 +104,7 @@ export class OpenIdtoId extends plugin {
     if (!group) 
       await this.reply(`暂未收录`)
     else 
-      await this.reply([`\r#查询结果\r\rGroupID: ${group.group_id}\r\r>活跃用户数: ${await User.UserGroups.count({ where: { group_id: group.group_id }})}\r活跃天数: ${await User.GroupDAU.count({ where: { group_id: group.group_id }})}`])
+      await this.reply([`\r#查询结果\r\rGroupID: ${group.group_id}\r\r>用户数: ${await User.UserGroups.count({ where: { group_id: group.group_id }})}人\r新增群员: ${await User.UserGroups.count({ where: { group_id: group.group_id, createdAt: { [Op.gte]: DATE } }})}人\r活跃天数: ${await User.GroupDAU.count({ where: { group_id: group.group_id }})}`])
     return
   }
 
