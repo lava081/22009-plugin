@@ -62,7 +62,7 @@ export class QQBotVoluntarilyPush extends plugin {
     e.reply([...msg.msg, Bot.Button(msg.button)])
     const group_ids = []
     const limit = 100
-    const where = { self_id: e.self.id }
+    const where = { self_id: e.self_id }
     const cnt = await User.Group.count({where})
     for (let offset = 0; offset < cnt; offset += limit){
       const groups = await User.Group.findAll({
@@ -86,7 +86,7 @@ export class QQBotVoluntarilyPush extends plugin {
     const group_ids = []
     const promises = []
     const limit = 100
-    const where = { self_id: e.self.id }
+    const where = { self_id: e.self_id }
     const cnt = await User.Group.count({where})
     for (let offset = 0; offset < cnt; offset += limit){
       const groups = await User.Group.findAll({
@@ -96,7 +96,7 @@ export class QQBotVoluntarilyPush extends plugin {
       })
       for (const group of groups) {
         if (!msg.ignore_group.includes(group.group_id)) {
-          promises.push(Bot[e.self.id].pickGroup(group.group_id).sendMsg([...msg.msg, Bot.Button(msg.button)])
+          promises.push(Bot[e.self_id].pickGroup(group.group_id).sendMsg([...msg.msg, Bot.Button(msg.button)])
           .then(() => group_ids.push(group.group_id))
           .catch((error) => { }))
         }
