@@ -1,4 +1,4 @@
-import User from '../model/openid.js'
+import Openid from '../model/openid.js'
 
 const calcDays = 30 //计算天数
 const days = 7 //显示天数
@@ -6,7 +6,7 @@ const days = 7 //显示天数
 /** 另外起一个监听器，直接源头监听QQBot */
 Bot.on('message', async data => {
   if (data.adapter == 'QQBot'){
-    User.addUserToGroup (data.user_id, data.group_id, data.self_id)
+    Openid.addUserToGroup (data.user_id, data.group_id, data.self_id)
   }
   return
 })
@@ -28,13 +28,13 @@ export class dau extends plugin {
   }
 
   async dau_read(e) {
-    const today = await User.getLocaleDate(new Date())
+    const today = await Openid.getLocaleDate(new Date())
     let msg = `当前日期: ${today}\r#日活统计\r\r>`
     const dates = []
     const order = [['DATE', 'DESC']]
     
     /** 获取日期列表 */
-    const daysDAU = await User.DAU.findAll({order, limit : calcDays})
+    const daysDAU = await Openid.DAU.findAll({order, limit : calcDays})
     daysDAU.forEach((day) => {
       dates.push(day.DATE)
     })
@@ -42,8 +42,8 @@ export class dau extends plugin {
     let UsersCnt = 0
     let GroupsCnt = 0
     for (var date in dates) {
-      const UsersToday = await User.UserDAU.count({ where: { DATE: dates[date], self_id: e.self_id }})
-      const GroupsToday = await User.GroupDAU.count({ where: { DATE: dates[date], self_id: e.self_id }})
+      const UsersToday = await Openid.UserDAU.count({ where: { DATE: dates[date], self_id: e.self_id }})
+      const GroupsToday = await Openid.GroupDAU.count({ where: { DATE: dates[date], self_id: e.self_id }})
       if(Number(date)){
         UsersCnt += UsersToday
         GroupsCnt += GroupsToday

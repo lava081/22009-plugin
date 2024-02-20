@@ -1,4 +1,4 @@
-import User from '../model/openid.js'
+import Openid from '../model/openid.js'
 /** 计算天数 */
 const calcDays = 7
 export class FunctionCounter extends plugin {
@@ -27,7 +27,7 @@ export class FunctionCounter extends plugin {
     const dates = []
 
     /** 获取日期列表 */
-    await User.DAU.findAll({ order: [['DATE', 'DESC']], limit: calcDays })
+    await Openid.DAU.findAll({ order: [['DATE', 'DESC']], limit: calcDays })
     .then((days) => {
       days.forEach((day) => {
         dates.push(day.DATE)
@@ -37,13 +37,13 @@ export class FunctionCounter extends plugin {
     msg.push(`\r#${dates.length}日功能统计\r`)
 
     /** 获取功能列表 */
-    await User.Fnc.findAll()
+    await Openid.Fnc.findAll()
     .then(async(fncs) => {
       for (const fnc of fncs) {
         const logFnc = fnc.logFnc.replace(/\_/g,'-').replace(/\[/g,'(').replace(/\]/g,')')
         let cnt = 0
         for (const DATE of dates) {
-          cnt += await User.UserFnc.count({ where: { DATE, logFnc: fnc.logFnc, self_id: e.self_id } })
+          cnt += await Openid.UserFnc.count({ where: { DATE, logFnc: fnc.logFnc, self_id: e.self_id } })
         }
         FncCnt.push({ logFnc, cnt })
       }

@@ -1,4 +1,4 @@
-import User from '../model/openid.js'
+import Openid from '../model/openid.js'
 import { Op } from 'sequelize'
 
 /** 24小时前 */
@@ -42,9 +42,9 @@ export class OpenIdtoId extends plugin {
     let where
     where = { self_id: e.self_id }
     const total = {
-      User: await User.User.count({ where }),
-      Group: await User.Group.count({ where }),
-      DAU: await User.DAU.count()
+      User: await Openid.User.count({ where }),
+      Group: await Openid.Group.count({ where }),
+      DAU: await Openid.DAU.count()
     }
     where = { 
       self_id: e.self_id,
@@ -53,11 +53,11 @@ export class OpenIdtoId extends plugin {
       }
     }
     const yesterday = {
-      User: await User.User.count({ where }),
-      Group: await User.Group.count({ where }),
+      User: await Openid.User.count({ where }),
+      Group: await Openid.Group.count({ where }),
     }
 
-    this.reply(`>收录用户数: ${total.User}  (24h新增: ${yesterday.User})\n收录群组数: ${total.Group}  (24h新增${yesterday.Group})\n收录天数: ${total.DAU}`)
+    this.reply(`>收录用户数: ${total.User}  (24h新增: ${yesterday.User})\n收录群组数: ${total.Group}  (24h新增: ${yesterday.Group})\n收录天数: ${total.DAU}`)
     return false
   }
 
@@ -75,14 +75,14 @@ export class OpenIdtoId extends plugin {
     } else {
       where = { nickname: search_id }
     }
-    await User.User.findAll({ where, limit: 10 })
+    await Openid.User.findAll({ where, limit: 10 })
     .then(async users => {
       for (const user of users) {
         openid.push(user)
         this.e.search_id = user.user_id
-        await this.reply([`\r#查询结果\r\r>QQ: ${user.qq}\r\r>昵称: ${user.nickname}\r活跃群聊数: ${await User.UserGroups.count({ where: { user_id: user.user_id }})}\r活跃天数: ${await User.UserDAU.count({ where: { user_id: user.user_id }})}\r所属机器人: ${user.self_id}\r\rUserID: ${user.user_id}\r头像: `,segment.image(`http://q.qlogo.cn/headimg_dl?dst_uin=${user.qq}&spec=640&img_type=jpg`)])
+        await this.reply([`\r#查询结果\r\r>QQ: ${user.qq}\r\r>昵称: ${user.nickname}\r活跃群聊数: ${await Openid.UserGroups.count({ where: { user_id: user.user_id }})}\r活跃天数: ${await Openid.UserDAU.count({ where: { user_id: user.user_id }})}\r所属机器人: ${user.self_id}\r\rUserID: ${user.user_id}\r头像: `,segment.image(`http://q.qlogo.cn/headimg_dl?dst_uin=${user.qq}&spec=640&img_type=jpg`)])
         if (openid.length >= 10) {
-          await this.reply(`重名${await User.User.count({ where })}人，显示前十人`)
+          await this.reply(`重名${await Openid.User.count({ where })}人，显示前十人`)
           return false
         }
       }
@@ -99,12 +99,12 @@ export class OpenIdtoId extends plugin {
     // 构建查询条件
     let where = { group_id: search_id }
     
-    const group = await User.Group.findOne({ where })
+    const group = await Openid.Group.findOne({ where })
     
     if (!group) 
       await this.reply(`暂未收录`)
     else 
-      await this.reply([`\r#查询结果\r\rGroupID: ${group.group_id}\r\r>用户数: ${await User.UserGroups.count({ where: { group_id: group.group_id }})}人\r新增群员: ${await User.UserGroups.count({ where: { group_id: group.group_id, createdAt: { [Op.gte]: DATE } }})}人\r活跃天数: ${await User.GroupDAU.count({ where: { group_id: group.group_id }})}`])
+      await this.reply([`\r#查询结果\r\rGroupID: ${group.group_id}\r\r>用户数: ${await Openid.UserGroups.count({ where: { group_id: group.group_id }})}人\r新增群员: ${await Openid.UserGroups.count({ where: { group_id: group.group_id, createdAt: { [Op.gte]: DATE } }})}人\r活跃天数: ${await Openid.GroupDAU.count({ where: { group_id: group.group_id }})}`])
     return
   }
 
@@ -121,7 +121,7 @@ export class OpenIdtoId extends plugin {
       nickname,
       self_id: e.self_id
     }
-    await User.UpdateUser(updatedData)
+    await Openid.UpdateUser(updatedData)
     await this.reply(`绑定中,如需更换绑定信息，重新绑定即可`)
     e.msg = `#身份查询${e.user_id}`
     this.transformer (e)
@@ -129,7 +129,7 @@ export class OpenIdtoId extends plugin {
   }
 
   async deleteOpenid (e) {
-    const user = await User.User.findOne({ where: { user_id: e.user_id } })
+    const user = await Openid.User.findOne({ where: { user_id: e.user_id } })
     if (user) {
       await user.destroy()
       await this.reply (`成功解绑`)

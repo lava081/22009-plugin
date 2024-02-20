@@ -5,7 +5,10 @@
 */
 
 import plugin from '../Lain-plugin/adapter/QQBot/plugins.js'
-import User from '../22009-plugin/model/openid.js'
+import Openid from '../22009-plugin/model/openid.js'
+
+/** 图片缩小倍率 */
+const reduce_Rate = 1
 
 Bot.Markdown = async function (e, data, button = []) {
   /** 原生 */
@@ -35,14 +38,15 @@ Bot.Markdown = async function (e, data, button = []) {
 
     /** 按钮 */
     const but = await Button(e)
-    let _button = but && (but?.length && (button?.length + but?.length <= 5)) ? [...but, ...button] : [...button]
 
     /** 添加全局按钮 */
+    let _button = but && but?.length ? [...but, ...button] : [...button]
     const button2 = [
       {label: '赞助',link: 'https://afdian.net/a/lava081'},
       {label: '交流群',link: 'http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=VyTqcH5UTmnnKmMwYR000_iy4fNQwWXS&authKey=AM6Utt2TRc%2F%2Fwd9KQuxBy01RJT52Kw%2B5kT%2FCcqdhYYKZbVUFHa4%2FIYtjmq5PXbjF&noverify=0&group_code=666260918'},
       {label: '拉群',link: 'https://qun.qq.com/qunpro/robot/qunshare?robot_uin=2854216359&robot_appid=102073196&biz_type=0'},
     ]
+    _button.slice(0, 5)
     // if (_button.length < 5)
     //   _button.unshift(...await Bot.Button(button2))
 
@@ -57,7 +61,7 @@ Bot.Markdown = async function (e, data, button = []) {
   for (let i of data) {
     switch (i.type) {
       case 'text':
-        text.push(`${i.text.replace(/\n/g, '\r').trim()}喵～`)
+        text.push(`${i.text.replace(/\n/g, '\r')}`)
         break
       case 'image':
         image.push(i)
@@ -67,8 +71,13 @@ Bot.Markdown = async function (e, data, button = []) {
     }
   }
 
+  let new_text = []
   /** 处理二笔语法，分割为数组 */
-  text = parseMD(text.join(''))
+  for (let i of text) {
+    new_text.push(...parseMD(i))
+  }
+  new_text[new_text.length - 1] += '喵～'
+  text = new_text
 
   /** 先分个组吧! */
   if (image.length > text.length) {
@@ -82,8 +91,8 @@ Bot.Markdown = async function (e, data, button = []) {
 }
 
 async function CountFunction(e) {
-  if (!(e?.sender.user_openid && e.logFnc && e.group_id && e.self_id)) return false
-  User.addUserToFnc(`${e.self_id}-${e?.sender.user_openid}`, e.group_id, e.self_id, e.logFnc)
+  if (!(e.sender?.user_openid && e.logFnc && e.group_id && e.self_id)) return false
+  Openid.addUserToFnc(`${e.self_id}-${e.sender?.user_openid}`, e.group_id, e.self_id, e.logFnc)
   return
 }
 
@@ -129,13 +138,13 @@ async function combination (e, data, but) {
     const params = []
     const length = p.length
     /** 头要特殊处理 */
-    params.push({ key: 'text_0', values: [(p[0]?.text || '') + (p[0].image ? `${ p[0]?.text ? '\r' : '' }![Lain-plugin. #${Math.floor(p[0].image?.width/ 5)}px #${Math.floor(p[0].image?.height/ 5)}px` : '')] })
+    params.push({ key: 'text_0', values: [(p[0]?.text || '') + (p[0].image ? `${ p[0]?.text ? '\r' : '' }![Lain-plugin. #${Math.floor(p[0].image?.width / reduce_Rate)}px #${Math.floor(p[0].image?.height / reduce_Rate)}px` : '')] })
     for (let i = 1; i < length; i++) {
       let val = []
       /** 上一个图片的后续链接 */
       if (p[i - 1]?.image) val.push(`](${p[i - 1].image.file})`)
       /** 当前对象的文字和图片的开头 */
-      val.push(p[i]?.image ? `${(p[i].text || '')}\r![Lain-plugin. #${Math.floor(p[i].image.width/ 5)}px #${Math.floor(p[i].image.height/ 5)}px` : (p[i].text || ''))
+      val.push(p[i]?.image ? `${(p[i].text || '')}\r![Lain-plugin. #${Math.floor(p[i].image.width / reduce_Rate)}px #${Math.floor(p[i].image.height / reduce_Rate)}px` : (p[i].text || ''))
       params.push({ key: 'text_' + (i), values: [val.join('')] })
     }
 
@@ -153,14 +162,15 @@ async function combination (e, data, but) {
 
     /** 按钮 */
     const button = await Button(e)
-    let _button = button && (button?.length && (button?.length + but?.length <= 5)) ? [...button, ...but] : [...but]
 
     /** 添加全局按钮 */
+    let _button = button && button?.length ? [...button, ...but] : [...but]
     const button2 = [
       {label: '赞助',link: 'https://afdian.net/a/lava081'},
       {label: '交流群',link: 'http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=VyTqcH5UTmnnKmMwYR000_iy4fNQwWXS&authKey=AM6Utt2TRc%2F%2Fwd9KQuxBy01RJT52Kw%2B5kT%2FCcqdhYYKZbVUFHa4%2FIYtjmq5PXbjF&noverify=0&group_code=666260918'},
       {label: '拉群',link: 'https://qun.qq.com/qunpro/robot/qunshare?robot_uin=2854216359&robot_appid=102073196&biz_type=0'},
     ]
+    _button.slice(0, 5)
     // if (_button.length < 5)
     //   _button.unshift(...await Bot.Button(button2))
 

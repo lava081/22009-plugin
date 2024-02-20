@@ -1,6 +1,6 @@
 import { Sequelize, DataTypes } from 'sequelize'
 
-class User {
+class Openid {
   static async init () {
     const sequelize = new Sequelize({
       dialect: 'sqlite',
@@ -381,4 +381,4 @@ class User {
   }
 }
 
-export default User
+export default Openid

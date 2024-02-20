@@ -1,8 +1,8 @@
 import fs from 'fs';
 import yaml from 'yaml'
-import User from '../model/openid.js'
+import Openid from '../model/openid.js'
 /** 初始化数据库 */
-await User.init()
+await Openid.init()
 /** 异步执行转换操作 */
 start()
 
@@ -30,7 +30,7 @@ async function start() {
         }
 
         // 将每个 translate() 调用的结果添加到 promises 数组
-        promises.push(User.UpdateUser(updatedData))
+        promises.push(Openid.UpdateUser(updatedData))
       }
     }
 
