@@ -31,7 +31,7 @@ export class OpenIdtoId extends plugin {
           fnc: 'transformerGroup'
         },
         {
-          reg: '^#?用户数量',
+          reg: '^#?身份数量',
           fnc: 'transformerCounter'
         },
       ]

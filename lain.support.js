@@ -6,7 +6,7 @@ export default class Button {
       priority: 99,
       rule: [
         {
-          reg: /^#?(功能统计|用户数量|dau)$/i,
+          reg: /^#?(功能统计|身份数量|dau)$/i,
           fnc: 'dau'
         },
         {
@@ -29,7 +29,7 @@ export default class Button {
     if (!e.isMaster) return false
     const button = [
       { label: '功能统计', data: `/功能统计` },
-      { label: '用户数量', data: `/用户数量` },
+      { label: '用户数量', data: `/身份数量` },
       { label: '日活', data: `dau` },
     ]
     return Bot.Button(button)
