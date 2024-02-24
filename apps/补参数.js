@@ -23,10 +23,10 @@ export class giveNickname extends plugin {
           fnc: 'segmentAt'
         },
         {
-          reg: "",
-          fnc: "giveNickname",
+          reg: '',
+          fnc: 'giveNickname',
           log: false
-        },
+        }
       ]
     })
   }
@@ -41,11 +41,11 @@ export class giveNickname extends plugin {
         if (Number(qq[i])) {
           const user = await Openid.User.findOne({ where: { qq: qq[i], self_id: e.self_id } })
           const nickname = user ? user.nickname : ''
-          this.e.message.push({type: 'at', qq: Number(qq[i]), text: nickname})
+          this.e.message.push({ type: 'at', qq: Number(qq[i]), text: nickname })
         } else {
           const user = await Openid.User.findOne({ where: { nickname: qq[i], self_id: e.self_id } })
           if (user && user.qq != 8888) {
-            this.e.message.push({type: 'at', qq: user.qq, text: user.nickname})
+            this.e.message.push({ type: 'at', qq: user.qq, text: user.nickname })
           }
         }
       }
@@ -56,44 +56,14 @@ export class giveNickname extends plugin {
   async giveNickname (e) {
     if (e.adapter == 'QQBot') {
       const user = await Openid.User.findOne({ where: { user_id: e.user_id } })
-      if(user && user.qq != 8888) {
+      if (user && user.qq != 8888) {
         this.e.sender.user_id = user.qq
         this.e.sender.nickname = user.nickname
         this.e.sender.card = user.nickname
         this.e.user_id = user.qq
         this.e.author.id = user.qq
-        /** 获取对应用户头像 */
-        this.e.getAvatarUrl = (size = 0, id = user.qq) => `https://q1.qlogo.cn/g?b=qq&s=${size}&nk=${id}`
-        this.e.group.pickMember = (userId) => {
-          return this.pickMember(userId)
-        }
       }
     }
     return false
-  }
-
-  pickMember (userID) {
-    return {
-      member: this.member(userID),
-      getAvatarUrl: (size = 640,id = userID) => `https://q1.qlogo.cn/g?b=qq&s=${size}&nk=${id}`
-    }
-  }
-
-  member (userId) {
-    const member = {
-      info: {
-        group_id: this.e.group_id,
-        user_id: userId,
-        nickname: '',
-        last_sent_time: ''
-      },
-      group_id: this.e.group_id,
-      is_admin: false,
-      is_owner: false,
-      /** 获取头像 */
-      getAvatarUrl: (size = 640,id = userId) => `https://q1.qlogo.cn/g?b=qq&s=${size}&nk=${id}`,
-      mute: async (time) => ''
-    }
-    return member
   }
 }

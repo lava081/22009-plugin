@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { Sequelize, DataTypes } from 'sequelize'
 
 class Openid {
@@ -36,7 +37,7 @@ class Openid {
         type: DataTypes.STRING,
         allowNull: false,
         comment: '所属机器人'
-      },
+      }
     }, {})
 
     /** 群组模型 */
@@ -57,7 +58,7 @@ class Openid {
         type: DataTypes.STRING,
         allowNull: true,
         comment: '预留'
-      },
+      }
     }, {})
 
     /** 日期模型 */
@@ -73,7 +74,7 @@ class Openid {
         type: DataTypes.STRING,
         allowNull: true,
         comment: '预留'
-      },
+      }
     }, {})
 
     /** 功能统计模型 */
@@ -87,7 +88,7 @@ class Openid {
         type: DataTypes.STRING,
         allowNull: true,
         comment: '预留'
-      },
+      }
     }, {})
 
     /** 关联模型 */
@@ -97,18 +98,18 @@ class Openid {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
-        autoIncrement: true, // 自增主键
+        autoIncrement: true // 自增主键
       },
       user_id: {
         type: DataTypes.STRING,
         allowNull: false,
-        comment: '用户ID',
+        comment: '用户ID'
       },
       group_id: {
         type: DataTypes.STRING,
         allowNull: false,
-        comment: '群聊ID',
-      },
+        comment: '群聊ID'
+      }
     }, {
       indexes: [
         { unique: true, fields: ['user_id', 'group_id'] } // 创建联合唯一索引
@@ -120,12 +121,12 @@ class Openid {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
-        autoIncrement: true, // 自增主键
+        autoIncrement: true // 自增主键
       },
       user_id: {
         type: DataTypes.STRING,
         allowNull: false,
-        comment: '用户ID',
+        comment: '用户ID'
       },
       DATE: {
         type: DataTypes.DATEONLY,
@@ -141,7 +142,7 @@ class Openid {
         type: DataTypes.STRING,
         allowNull: true,
         comment: '预留'
-      },
+      }
     }, {
       indexes: [
         { unique: true, fields: ['user_id', 'DATE'] } // 创建联合唯一索引
@@ -153,12 +154,12 @@ class Openid {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
-        autoIncrement: true, // 自增主键
+        autoIncrement: true // 自增主键
       },
       group_id: {
         type: DataTypes.STRING,
         allowNull: false,
-        comment: '群组ID',
+        comment: '群组ID'
       },
       DATE: {
         type: DataTypes.DATEONLY,
@@ -174,7 +175,7 @@ class Openid {
         type: DataTypes.STRING,
         allowNull: true,
         comment: '预留'
-      },
+      }
     }, {
       indexes: [
         { unique: true, fields: ['group_id', 'DATE'] } // 创建联合唯一索引
@@ -192,7 +193,7 @@ class Openid {
       user_id: {
         type: DataTypes.STRING,
         allowNull: false,
-        comment: '用户ID',
+        comment: '用户ID'
       },
       DATE: {
         type: DataTypes.DATEONLY,
@@ -218,7 +219,7 @@ class Openid {
         type: DataTypes.STRING,
         allowNull: true,
         comment: '预留'
-      },
+      }
     }, {
       indexes: [
         { unique: true, fields: ['UserDAU_id', 'logFnc'] } // 创建联合唯一索引
@@ -230,75 +231,74 @@ class Openid {
     /** 在User模型中添加Group关联 */
     this.User.belongsToMany(this.Group, {
       through: this.UserGroups,
-      foreignKey: 'user_id',
+      foreignKey: 'user_id'
     })
-    
+
     /** 在User模型中添加DAU关联 */
     this.User.belongsToMany(this.DAU, {
       through: this.UserDAU,
-      foreignKey: 'user_id',
+      foreignKey: 'user_id'
     })
 
     /** 在Group模型中添加User关联 */
     this.Group.belongsToMany(this.User, {
       through: this.UserGroups,
-      foreignKey: 'group_id',
+      foreignKey: 'group_id'
     })
 
     /** 在Group模型中添加DAU关联 */
     this.Group.belongsToMany(this.DAU, {
       through: this.GroupDAU,
-      foreignKey: 'group_id',
+      foreignKey: 'group_id'
     })
 
     /** 在DAU模型中添加User关联 */
     this.DAU.belongsToMany(this.User, {
       through: this.UserDAU,
-      foreignKey: 'DATE',
+      foreignKey: 'DATE'
     })
 
     /** 在DAU模型中添加Group关联 */
     this.DAU.belongsToMany(this.Group, {
       through: this.GroupDAU,
-      foreignKey: 'DATE',
+      foreignKey: 'DATE'
     })
 
     /** 在Fnc模型中添加UserDAU关联 */
     this.Fnc.belongsToMany(this.UserDAU, {
       through: this.UserFnc,
-      foreignKey: 'logFnc',
+      foreignKey: 'logFnc'
     })
 
     /** 在UserDAU模型中添加UserDAU关联 */
     this.UserDAU.belongsToMany(this.Fnc, {
       through: this.UserFnc,
-      foreignKey: 'UserDAU_id',
+      foreignKey: 'UserDAU_id'
     })
-
 
     /** 同步 */
     try {
-      await sequelize.sync();
-      console.log('数据库同步成功');
+      await sequelize.sync()
+      console.log('数据库同步成功')
     } catch (error) {
-      console.error('数据库同步出错:', error);
+      console.error('数据库同步出错:', error)
     }
   }
 
   /** 更新用户模型 */
   static async UpdateUser (updatedData) {
     const user = await this.User.findOne({ where: { user_id: updatedData.user_id } })
-    if(!user)
-      return await this.User.create(updatedData)  // 如果用户不存在，直接创建用户
-    else 
+    if (!user) {
+      return await this.User.create(updatedData) // 如果用户不存在，直接创建用户
+    } else {
       return await this.User.update(updatedData, { where: { user_id: updatedData.user_id } })
+    }
   }
 
   /** 维护用户和群聊的多对多关系和DAU，自动创建所需用户和群组，带去重 */
   static async addUserToGroup (user_id, group_id, self_id) {
     /** 防止缺参数 */
-    if (!(user_id && group_id && self_id))
-      return false
+    if (!(user_id && group_id && self_id)) { return false }
 
     const DATE = this.getLocaleDate(new Date())
 
@@ -307,18 +307,17 @@ class Openid {
     let group = await this.Group.findOne({ where: { group_id } })
     let date = await this.DAU.findOne({ where: { DATE } })
 
-
     /** 自动创建所需用户和群组和日期 */
     if (!date) {
       const updatedData = { DATE }
-      await this.DAU.create(updatedData)  // 创建日期
-      date = await this.DAU.findOne({ where: { DATE } })  // 重新载入
+      await this.DAU.create(updatedData) // 创建日期
+      date = await this.DAU.findOne({ where: { DATE } }) // 重新载入
     }
     if (!user) {
       /** 临时用户身份 */
       const updatedData = {
         user_id,
-        qq: 8888,  // 正常qq最少5位
+        qq: 8888, // 正常qq最少5位
         nickname: '',
         self_id
       }
@@ -340,14 +339,11 @@ class Openid {
       await date.addUser(user, { through: { self_id } })
       await date.addGroup(group, { through: { self_id } })
     } catch (error) { logger.info(error) }
-
-    return
   }
 
   /** 维护用户功能统计的多对多关系 */
   static async addUserToFnc (user_id, group_id, self_id, logFnc) {
-    if (!(logFnc && user_id && group_id && self_id))
-      return false
+    if (!(logFnc && user_id && group_id && self_id)) { return false }
     const DATE = this.getLocaleDate(new Date())
     /** 载入 */
     let fnc = await this.Fnc.findOne({ where: { logFnc } })
@@ -355,19 +351,17 @@ class Openid {
     if (!fnc) {
       const updatedData = { logFnc }
       await this.Fnc.create(updatedData)
-      fnc = await this.Fnc.findOne({ where: { logFnc } })  // 重新载入
+      fnc = await this.Fnc.findOne({ where: { logFnc } }) // 重新载入
     }
     if (!user) {
-      await this.addUserToGroup (user_id, group_id, self_id)
-      user = await this.UserDAU.findOne({ where: { DATE, user_id } })  // 重新载入
+      await this.addUserToGroup(user_id, group_id, self_id)
+      user = await this.UserDAU.findOne({ where: { DATE, user_id } }) // 重新载入
     }
 
     /** 建立关联，有唯一索引所以不用去重 */
     try {
       await fnc.addUserDAU(user, { through: { user_id, self_id, DATE } })
     } catch (error) { logger.info(error) }
-
-    return
   }
 
   /** 获取当前日期对象并调整为东八区时间 */
