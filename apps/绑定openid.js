@@ -80,7 +80,7 @@ export class OpenIdtoId extends plugin {
       for (const user of users) {
         openid.push(user)
         this.e.search_id = user.user_id
-        await this.reply([`\r#查询结果\r\r>QQ: ${user.qq}\r\r>昵称: ${user.nickname}\r活跃群聊数: ${await Openid.UserGroups.count({ where: { user_id: user.user_id }})}\r活跃天数: ${await Openid.UserDAU.count({ where: { user_id: user.user_id }})}\r所属机器人: ${user.self_id}\r\rUserID: ${user.user_id}\r头像: `,segment.image(`http://q.qlogo.cn/headimg_dl?dst_uin=${user.qq}&spec=640&img_type=jpg`)])
+        await this.reply([`\r#查询结果\r\r>QQ: ${user.qq}\r\r>昵称: ${user.nickname}\r活跃群聊数: ${await Openid.UserGroups.count({ where: { user_id: user.user_id }})}\r活跃天数: ${await Openid.UserDAU.count({ where: { user_id: user.user_id }})}\r所属机器人: ${user.self_id}\r\rUserID: ${user.user_id}\r头像: `,segment.image(`https://q.qlogo.cn/qqapp/${user.user_id.replace('-', '/')}/0`)])
         if (openid.length >= 10) {
           await this.reply(`重名${await Openid.User.count({ where })}人，显示前十人`)
           return false
