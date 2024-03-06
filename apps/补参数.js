@@ -20,7 +20,8 @@ export class giveNickname extends plugin {
       rule: [
         {
           reg: '@',
-          fnc: 'segmentAt'
+          fnc: 'segmentAt',
+          log: false
         },
         {
           reg: '',
