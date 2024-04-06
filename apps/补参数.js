@@ -1,9 +1,23 @@
 import Openid from '../model/openid.js'
 
-Bot.QQToOpenid = async function (qq, e) {
-  const user = await Openid.User.findOne({ where: { qq, self_id: e.self_id } })
-  if (user && user.qq != 8888) {
-    qq = user.user_id
+Bot.QQToOpenid = async function (qq, e, type = 'user') {
+  switch (type) {
+    case 'user': {
+      if (!(typeof qq === 'number')) break
+      const user = await Openid.User.findOne({ where: { qq, self_id: e.self_id } })
+      if (user) {
+        qq = user.user_id
+      }
+      break
+    }
+    case 'group': {
+      if (!(typeof qq === 'number')) break
+      const group = await Openid.Group.findOne({ where: { qq, self_id: e.self_id } })
+      if (group) {
+        qq = group.group_id
+      }
+      break
+    }
   }
   qq = qq.trim().split('-')
   qq = qq[1] || qq[0]
@@ -34,6 +48,9 @@ export class giveNickname extends plugin {
 
   async segmentAt (e) {
     if (e.adapter == 'QQBot') {
+      if (e.group) {
+        Bot[e.self_id].pickGroup(e.group_id).getMemberMap = async () => await this.getMemberMap(e.group_id)
+      }
       const qq = e.msg.split('@')
       qq.shift()
       for (let i in qq) {
@@ -74,24 +91,16 @@ export class giveNickname extends plugin {
     return false
   }
 
-  async pickGroup (self_id, group_id) {
-    let ret
-    if (typeof group_id === 'number') {
-      const group = await Openid.Group.findOne({ where: { qq: group_id } })
-      ret = Bot[self_id].pickGroup(group.group_id)
-      ret.getMemberMap = async () => await this.getMemberMap(group.group_id)
-    } else {
-      ret = Bot[self_id].pickGroup(group_id)
-      ret.getMemberMap = async () => await this.getMemberMap(group_id)
-    }
-    return ret
-  }
-
   async getMemberMap (group_id) {
     let group_Member = new Map()
     let member_list
+    let group
     try {
-      const group = await Openid.Group.findByPk(group_id)
+      if (typeof group_id === 'number') {
+        group = await Openid.Group.findOne({ where: { qq: group_id, self_id: this.e.self_id } })
+      } else {
+        group = await Openid.Group.findByPk(group_id)
+      }
       member_list = await group.getUsers({})
     } catch (error) {
       Promise.reject(new Error('22009获取成员失败'))
