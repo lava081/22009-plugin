@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import { Sequelize, DataTypes } from 'sequelize'
 
 class Openid {
@@ -48,6 +47,11 @@ class Openid {
         primaryKey: true,
         allowNull: false,
         comment: 'OpenID，主键'
+      },
+      qq: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: '真实qq群号'
       },
       self_id: {
         type: DataTypes.STRING,
@@ -283,6 +287,8 @@ class Openid {
     } catch (error) {
       console.error('数据库同步出错:', error)
     }
+
+    return sequelize
   }
 
   /** 更新用户模型 */
