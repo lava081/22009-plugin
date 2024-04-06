@@ -36,6 +36,11 @@ class Openid {
         type: DataTypes.STRING,
         allowNull: false,
         comment: '所属机器人'
+      },
+      other: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        comment: '预留'
       }
     }, {})
 
@@ -113,6 +118,11 @@ class Openid {
         type: DataTypes.STRING,
         allowNull: false,
         comment: '群聊ID'
+      },
+      other: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        comment: '预留'
       }
     }, {
       indexes: [

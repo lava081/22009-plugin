@@ -2,7 +2,26 @@ import fs from 'fs'
 import yaml from 'yaml'
 import Openid from '../model/openid.js'
 /** 初始化数据库 */
-await Openid.init()
+let sql = await Openid.init()
+
+try {
+  /** 兼容旧数据 */
+  const columnsToAdd = {
+    Group: ['qq'],
+    User: ['other'],
+    UserGroups: ['other']
+  }
+  await sql.transaction(async (t) => {
+    for (const tableName in columnsToAdd) {
+      for (const columnName of columnsToAdd) {
+        await addColumn(tableName, columnName, t)
+      }
+    }
+  })
+  console.log('所有列添加完成')
+} catch (error) {
+  console.error('添加列时出错:', error)
+}
 /** 异步执行转换操作 */
 start()
 
@@ -40,5 +59,14 @@ async function start () {
       })
       .then(() => logger.info('[22009]用户转存为数据库完成，存放位置\'./data/22009-plugin/openid.db\''))
       .catch(err => logger.error('[22009]用户转存为数据库出错: ', err))
+  }
+}
+
+async function addColumn (tableName, columnName, t) {
+  const [results] = await sql.query(`PRAGMA table_info(${tableName})`, { transaction: t })
+  const columnExists = results.some(column => column.name === columnName)
+  if (!columnExists) {
+    await sql.query(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} INTEGER`, { transaction: t })
+    console.log(`已成功添加列 ${columnName}`)
   }
 }
