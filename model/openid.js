@@ -311,6 +311,16 @@ class Openid {
     }
   }
 
+  /** 更新群组模型 */
+  static async UpdateGroup (updatedData) {
+    const group = await this.Group.findOne({ where: { group_id: updatedData.group_id } })
+    if (!group) {
+      return await this.Group.create(updatedData) // 如果用户不存在，直接创建用户
+    } else {
+      return await this.Group.update(updatedData, { where: { group_id: updatedData.group_id } })
+    }
+  }
+
   /** 维护用户和群聊的多对多关系和DAU，自动创建所需用户和群组，带去重 */
   static async addUserToGroup (user_id, group_id, self_id) {
     /** 防止缺参数 */
