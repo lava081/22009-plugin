@@ -64,7 +64,7 @@ async function start () {
 
 async function addColumn (tableName, columnName, t) {
   const [results] = await sql.query(`PRAGMA table_info(${tableName})`, { transaction: t })
-  const columnExists = results.some(column => column.name === columnName)
+  const columnExists = results.some(column => `\`${column.name}\`` === columnName)
   if (!columnExists) {
     await sql.query(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} INTEGER`, { transaction: t })
     console.log(`已成功添加列 ${columnName}`)
