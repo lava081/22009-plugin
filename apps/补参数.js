@@ -73,8 +73,6 @@ export class giveNickname extends plugin {
 
   async giveNickname (e) {
     if (e.adapter == 'QQBot') {
-      Bot[e.self_id].pickGroup = async (group_id) => await this.pickGroup(e.self_id, group_id)
-      this.e.group = Bot[e.self_id].pickGroup
       const group = await Openid.Group.findOne({ where: { group_id: e.group_id } })
       if (group && group.qq) {
         this.e.group_id = group.qq
