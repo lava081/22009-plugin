@@ -14,7 +14,7 @@ try {
   await sql.transaction(async (t) => {
     for (const tableName in columnsToAdd) {
       for (const columnName of columnsToAdd[tableName]) {
-        await addColumn(tableName, columnName, t)
+        await addColumn(`\`${tableName}\``, `\`${columnName}\``, t)
       }
     }
   })
