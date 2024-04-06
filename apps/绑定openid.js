@@ -91,14 +91,27 @@ export class OpenIdtoId extends plugin {
   }
 
   async transformerGroup (e) {
+    const openid = []
     let search_id = e.msg.replace(/^#?群组查询/, '').trim()
     if (search_id == '') { search_id = e.group_id }
     // 构建查询条件
     let where = { group_id: search_id }
+    if (Number(search_id)) {
+      where = { qq: Number(search_id) }
+    }
 
-    const group = await Openid.Group.findOne({ where })
+    await Openid.Group.findAll({ where })
+      .then(async groups => {
+        for (const group of groups) {
+          this.e.search_id = group.group_id
+          openid.push(group)
+          const msg = [`\r#查询结果\r\rGroupID: ${group.group_id}\r\r>QQ: ${group.qq}\r\r>用户数: ${await Openid.UserGroups.count({ where: { group_id: group.group_id } })}人\r新增群员: ${await Openid.UserGroups.count({ where: { group_id: group.group_id, createdAt: { [Op.gte]: DATE } } })}人\r活跃天数: ${await Openid.GroupDAU.count({ where: { group_id: group.group_id } })}`]
+          if (group.qq) msg.push(segment.image(`https://p.qlogo.cn/gh/${group.qq}/${group.qq}/0`))
+          await this.reply(msg)
+        }
+      })
 
-    if (!group) { await this.reply('暂未收录') } else { await this.reply([`\r#查询结果\r\rGroupID: ${group.group_id}\r\r>QQ: ${group.qq}\r\r>用户数: ${await Openid.UserGroups.count({ where: { group_id: group.group_id } })}人\r新增群员: ${await Openid.UserGroups.count({ where: { group_id: group.group_id, createdAt: { [Op.gte]: DATE } } })}人\r活跃天数: ${await Openid.GroupDAU.count({ where: { group_id: group.group_id } })}`]) }
+    if (openid.length === 0) { await this.reply('暂未收录') }
   }
 
   async writeOpenid (e) {

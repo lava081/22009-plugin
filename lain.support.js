@@ -39,7 +39,7 @@ export default class Button {
       ], [
         { label: '用户绑定', data: '#id绑定' },
         { label: '用户解绑', data: '#id解绑' },
-        { label: '用户ID', data: `${e.search_id}` }
+        { label: 'OpenID', data: `${e.search_id}` }
       ]
     ]
     return Bot.Button(button)
