@@ -7,8 +7,8 @@ let sql = await Openid.init()
 try {
   /** 兼容旧数据 */
   const columnsToAdd = {
-    Group: ['qq'],
-    User: ['other'],
+    Groups: ['qq'],
+    Users: ['other'],
     UserGroups: ['other']
   }
   await sql.transaction(async (t) => {
