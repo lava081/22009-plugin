@@ -3,7 +3,7 @@ import chokidar from 'chokidar'
 import Openid from '../model/openid.js'
 /** 发送间隔 */
 const sleep_time = 1000
-const rootPath = `./plugins/22009-plugin/config`
+const rootPath = './plugins/22009-plugin/config'
 /** 发送参数的存储位置 */
 const Path = `${rootPath}/config/msg.json`
 /** 发送参数的参考存储位置 */
@@ -38,57 +38,50 @@ function sleep (ms) {
 }
 
 export class QQBotVoluntarilyPush extends plugin {
-  constructor() {
+  constructor () {
     super({
-      name: "QQBot主动推送",
-      dsc: "适配铃音，需配合22009自带的dau，主动消息有限，且用且珍惜",
-      event: "message",
+      name: 'QQBot主动推送',
+      dsc: '适配铃音，需配合22009自带的dau，主动消息有限，且用且珍惜',
+      event: 'message',
       priority: 100,
       rule: [
         {
-          reg: "^#?(预览)?主动推送$",
-          fnc: "play",
-          permission: "master",
-        },
+          reg: '^#?(预览)?主动推送$',
+          fnc: 'play',
+          permission: 'master'
+        }
       ]
     })
   }
 
   async play (e) {
-    if (msg == '')
-      return e.reply(`未配置${Path}\r参考文件位于${defPath}`)
+    if (msg == '') { return e.reply(`未配置${Path}\r参考文件位于${defPath}`) }
 
-    if (e.msg.match(/预览/)) 
-      this.passive_send(e, msg)
-    else
-      this.active_send(e, msg)
-    return
+    if (e.msg.match(/预览/)) { this.passive_send(e, msg) } else { this.active_send(e, msg) }
   }
 
-  async passive_send(e, msg) {
+  async passive_send (e, msg) {
     e.reply([...msg.msg, Bot.Button(msg.button)])
     const group_ids = []
     const limit = 100
     const where = { self_id: e.self_id }
-    const cnt = await Openid.Group.count({where})
-    for (let offset = 0; offset < cnt; offset += limit){
+    const cnt = await Openid.Group.count({ where })
+    for (let offset = 0; offset < cnt; offset += limit) {
       const groups = await Openid.Group.findAll({
         where,
         limit,
         offset
       })
       for (const group of groups) {
-        if (!msg.ignore_group.includes(group.group_id))
-          group_ids.push(group.group_id)
+        if (!msg.ignore_group.includes(group.group_id)) { group_ids.push(group.group_id) }
         await sleep(1)
       }
     }
     logger.mark(group_ids)
     await Bot.pickGroup(msg.notice).sendMsg(`目标群聊:${group_ids.length}群`)
-    return
   }
 
-  async active_send(e, msg) {
+  async active_send (e, msg) {
     e.reply([...msg.msg, Bot.Button(msg.button)])
     /** 失败群聊 */
     const group_ids = []
@@ -99,9 +92,9 @@ export class QQBotVoluntarilyPush extends plugin {
     /** 限制仅当前机器人 */
     const where = { self_id: e.self_id }
     /** 总群数 */
-    const cnt = await Openid.Group.count({where})
+    const cnt = await Openid.Group.count({ where })
     /** 遍历数据库中的群组并发送 */
-    for (let offset = 0; offset < cnt; offset += limit){
+    for (let offset = 0; offset < cnt; offset += limit) {
       /** 一次读取 */
       const groups = await Openid.Group.findAll({
         where,
@@ -112,7 +105,7 @@ export class QQBotVoluntarilyPush extends plugin {
         /** 一次发送 */
         if (!msg.ignore_group.includes(group.group_id)) {
           promises.push(Bot[e.self_id].pickGroup(group.group_id).sendMsg([...msg.msg, Bot.Button(msg.button)])
-          .catch((error) => group_ids.push(group.group_id)))
+            .catch((error) => group_ids.push(group.group_id)))
         }
         await sleep(sleep_time)
       }
@@ -121,6 +114,5 @@ export class QQBotVoluntarilyPush extends plugin {
     Promise.all(promises)
     logger.mark(group_ids)
     await Bot.pickGroup(msg.notice).sendMsg(`成功群聊:${cnt - group_ids.length}群`)
-    return
   }
 }

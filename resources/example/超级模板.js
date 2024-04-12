@@ -7,102 +7,33 @@
 import plugin from '../Lain-plugin/adapter/QQBot/plugins.js'
 import Openid from '../22009-plugin/model/openid.js'
 
-/** 图片缩小倍率 */
-const reduce_Rate = 1
+/** 违规关键字 */
+let mdSymbols = ['](', '***', '**', '*', '__', '_', '~~', '~', '`']
 
-Bot.Markdown = async function (e, data, button = []) {
-  /** 原生 */
-  if (!e.bot.config.markdown) {
-    const all = []
-    let content = ``
-    for (let i of data) {
-      switch (i.type) {
-        case 'text':
-          content += i.text.replace(/\n/g, '\r')
-          break
-        case 'image':
-          content += `\r![Lain-plugin. #${i.image.width} #${i.image.height}](${i.image.file})`
-          break
-        default:
-          break
-      }
-    }
-    
-    /** 转为md */
-    const markdown = {
-      type: 'markdown',
-      content
-    }
-
-    logger.mark(content)
-
-    /** 按钮 */
-    const but = await Button(e)
-
-    /** 添加全局按钮 */
-    let _button = but && but?.length ? [...but, ...button] : [...button]
-    const button2 = [
-      {label: '赞助',link: 'https://afdian.net/a/lava081'},
-      {label: '交流群',link: 'http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=VyTqcH5UTmnnKmMwYR000_iy4fNQwWXS&authKey=AM6Utt2TRc%2F%2Fwd9KQuxBy01RJT52Kw%2B5kT%2FCcqdhYYKZbVUFHa4%2FIYtjmq5PXbjF&noverify=0&group_code=666260918'},
-      {label: '拉群',link: 'https://qun.qq.com/qunpro/robot/qunshare?robot_uin=2854216359&robot_appid=102073196&biz_type=0'},
-    ]
-    _button.slice(0, 5)
-    // if (_button.length < 5)
-    //   _button.unshift(...await Bot.Button(button2))
-
-    all.push([markdown, ..._button])
-    return all
-  }
-  
-  let text = []
-  const image = []
-  const message = []
-
-  for (let i of data) {
-    switch (i.type) {
-      case 'text':
-        text.push(`${i.text.replace(/\n/g, '\r')}`)
-        break
-      case 'image':
-        image.push(i)
-        break
-      default:
-        break
-    }
-  }
-
-  let new_text = []
+Bot.ContentToMarkdown = async function (e, content, button = []) {
+  /** 数组转字符串 */
+  content = content.join('\r')
+  content += '喵～'
   /** 处理二笔语法，分割为数组 */
-  for (let i of text) {
-    new_text.push(...parseMD(i))
-  }
-  new_text[new_text.length - 1] += '喵～'
-  text = new_text
+  content = parseMD(content)
 
-  /** 先分个组吧! */
-  if (image.length > text.length) {
-    for (const i in image) message.push({ text: text?.[i], image: image?.[i] })
-  } else {
-    for (const i in text) message.push({ text: text?.[i], image: image?.[i] })
-  }
+  /** 22009功能统计 */
   CountFunction(e)
 
-  return await combination(e, message, button)
+  return await combination(e, content, button)
 }
 
-async function CountFunction(e) {
+async function CountFunction (e) {
   if (!(e.sender?.user_openid && e.logFnc && e.group_id && e.self_id)) return false
   Openid.addUserToFnc(`${e.self_id}-${e.sender?.user_openid}`, e.group_id, e.self_id, e.logFnc)
-  return
 }
 
 /** 处理md标记 */
 function parseMD (str) {
   /** 处理第一个标题 */
-  str = str.replace(/^#/, '\r#')
-  let msg = str.split(/(\*\*\*|\*\*|\*|__|_|~~|~|\`)/).filter(Boolean)
+  str = str.replace(/^#/, '\r#').replace(/\n/g, '\r')
+  let msg = str.split(/(\]\(|\*\*\*|\*\*|\*|__|_|~~|~|`)/).filter(Boolean)
 
-  let mdSymbols = ['***', '**', '*', '__', '_', '~~', '~', '\`']
   let result = []
   let temp = ''
 
@@ -123,9 +54,31 @@ function parseMD (str) {
 }
 
 /** 按9进行分类 */
-function sort (arr) {
+async function sort (arr, e) {
   const Array = []
-  for (let i = 0; i < arr.length; i += 9) Array.push(arr.slice(i, i + 9))
+  for (let i = 0; i < arr.length; i += 9) {
+    if (Array.length) {
+      // 处理第九张图
+      if (!mdSymbols.includes(arr[i])) {
+        Array[Array.length - 1][9] = arr[i]
+        i++
+      } else if (arr[i - 1].match(/!\[/)) {
+        Array[Array.length - 1][9] = arr[i].substring(0, arr[i].indexOf(')') + 1)
+        arr[i] = arr[i].substring(arr[i].indexOf(')') + 1)
+      }
+    }
+    if (!arr.slice(i, i + 9).length) break
+    Array.push(arr.slice(i, i + 9))
+
+    /** 加入自适应的消息头部 */
+    if (e.raw_message && e.sender?.user_openid) {
+      Array[Math.floor(i / 9)][0] = `<@${e.sender?.user_openid}>\r\r> ${(e.raw_message.length > 10) ? e.raw_message.slice(0, 9) + '…' : e.raw_message}\r\r` + Array[Math.floor(i / 9)][0].replace(new RegExp(`^<@${e.sender?.user_openid}>`), '')
+      if (Array[Math.floor(i / 9)].length < 9) {
+        Array[Math.floor(i / 9)].unshift('>![Lain-plugin #25px #25px]')
+        Array[Math.floor(i / 9)][1] = `(https://q.qlogo.cn/qqapp/${e.self_id}/${e.sender?.user_openid}/100)` + Array[Math.floor(i / 9)][1]
+      }
+    }
+  }
   return Array
 }
 
@@ -133,23 +86,13 @@ function sort (arr) {
 async function combination (e, data, but) {
   const all = []
   /** 按9分类 */
-  data = sort(data)
+  data = await sort(data, e)
   for (let p of data) {
     const params = []
     const length = p.length
-    /** 头要特殊处理 */
-    params.push({ key: 'text_0', values: [(p[0]?.text || '') + (p[0].image ? `${ p[0]?.text ? '\r' : '' }![Lain-plugin. #${Math.floor(p[0].image?.width / reduce_Rate)}px #${Math.floor(p[0].image?.height / reduce_Rate)}px` : '')] })
-    for (let i = 1; i < length; i++) {
-      let val = []
-      /** 上一个图片的后续链接 */
-      if (p[i - 1]?.image) val.push(`](${p[i - 1].image.file})`)
-      /** 当前对象的文字和图片的开头 */
-      val.push(p[i]?.image ? `${(p[i].text || '')}\r![Lain-plugin. #${Math.floor(p[i].image.width / reduce_Rate)}px #${Math.floor(p[i].image.height / reduce_Rate)}px` : (p[i].text || ''))
-      params.push({ key: 'text_' + (i), values: [val.join('')] })
+    for (let i = 0; i < length; i++) {
+      params.push({ key: 'text_' + (i), values: [p[i]] })
     }
-
-    /** 尾巴也要! */
-    if (p[length - 1]?.image) params.push({ key: `text_${length}`, values: [`](${p[length - 1].image.file})`] })
 
     /** 转为md */
     const markdown = {
@@ -158,22 +101,18 @@ async function combination (e, data, but) {
       params
     }
 
-    logger.mark(params)
+    logger.debug(params)
 
     /** 按钮 */
     const button = await Button(e)
-
-    /** 添加全局按钮 */
     let _button = button && button?.length ? [...button, ...but] : [...but]
     const button2 = [
-      {label: '赞助',link: 'https://afdian.net/a/lava081'},
-      {label: '交流群',link: 'http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=VyTqcH5UTmnnKmMwYR000_iy4fNQwWXS&authKey=AM6Utt2TRc%2F%2Fwd9KQuxBy01RJT52Kw%2B5kT%2FCcqdhYYKZbVUFHa4%2FIYtjmq5PXbjF&noverify=0&group_code=666260918'},
-      {label: '拉群',link: 'https://qun.qq.com/qunpro/robot/qunshare?robot_uin=2854216359&robot_appid=102073196&biz_type=0'},
+      { label: '赞助', link: 'https://afdian.net/a/lava081' },
+      { label: '交流群', link: 'https://qm.qq.com/q/tizfRnm6SO' },
+      { label: '拉群', link: 'https://qun.qq.com/qunpro/robot/qunshare?robot_uin=2854216359&robot_appid=102073196&biz_type=0' },
+      { label: '按钮中心', callback: ' ', style: 0 }
     ]
-    _button.slice(0, 5)
-    // if (_button.length < 5)
-    //   _button.unshift(...await Bot.Button(button2))
-
+    if (_button.length < 5) { _button.unshift(...await Bot.Button(button2, 4)) }
     all.push([markdown, ..._button])
   }
   return all
@@ -186,7 +125,9 @@ async function Button (e) {
       for (let v of p.plugin.rule) {
         const regExp = new RegExp(v.reg)
         if (regExp.test(e.msg)) {
+          p.e = e
           const button = await p[v.fnc](e)
+          /** 无返回不添加 */
           if (button) return [...(Array.isArray(button) ? button : [button])]
         }
       }

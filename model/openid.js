@@ -315,7 +315,7 @@ class Openid {
   static async UpdateGroup (updatedData) {
     const group = await this.Group.findOne({ where: { group_id: updatedData.group_id } })
     if (!group) {
-      return await this.Group.create(updatedData) // 如果用户不存在，直接创建用户
+      return await this.Group.create(updatedData) // 如果群组不存在，直接创建群组
     } else {
       return await this.Group.update(updatedData, { where: { group_id: updatedData.group_id } })
     }
@@ -329,8 +329,8 @@ class Openid {
     const DATE = this.getLocaleDate(new Date())
 
     /** 载入 */
-    let user = await this.User.findOne({ where: { user_id } })
-    let group = await this.Group.findOne({ where: { group_id } })
+    let user = await this.User.findOne({ where: Number(user_id) ? { qq: user_id, self_id } : { user_id } })
+    let group = await this.Group.findOne({ where: Number(group_id) ? { qq: group_id, self_id } : { group_id } })
     let date = await this.DAU.findOne({ where: { DATE } })
 
     /** 自动创建所需用户和群组和日期 */
@@ -371,6 +371,9 @@ class Openid {
   static async addUserToFnc (user_id, group_id, self_id, logFnc) {
     if (!(logFnc && user_id && group_id && self_id)) { return false }
     const DATE = this.getLocaleDate(new Date())
+    if (Number(user_id)) {
+      user_id = (await this.User.findOne({ where: { qq: user_id, self_id } })).user_id
+    }
     /** 载入 */
     let fnc = await this.Fnc.findOne({ where: { logFnc } })
     let user = await this.UserDAU.findOne({ where: { DATE, user_id } })
