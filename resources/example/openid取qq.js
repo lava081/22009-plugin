@@ -40,7 +40,7 @@ export class autoOpenIdtoId extends plugin {
           fnc: 'sendOpenid'
         },
         {
-          reg: '^#?对应关系',
+          reg: '对应关系',
           fnc: 'writeOpenid'
         },
         {
@@ -100,7 +100,8 @@ export class autoOpenIdtoId extends plugin {
 
   async writeOpenid (e) {
     const message = e.message.filter(item => item.type === 'text' || item.type === 'at')
-    for (let openid = 1; openid < message.length - 1; openid += 2) {
+    // console.log(message)
+    for (let openid = 3; openid < message.length - 1; openid += 2) {
       const possition = message[openid].text.indexOf('对应关系')
       const user_id = message[openid].text.substring((possition == -1) ? 0 : (possition + 4)).trim()
       const self_id = user_id.split('-')[0]
