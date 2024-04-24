@@ -8,12 +8,11 @@ import plugin from '../Lain-plugin/adapter/QQBot/plugins.js'
 import Openid from '../22009-plugin/model/openid.js'
 
 /** 违规关键字 */
-let mdSymbols = ['](', '***', '**', '*', '__', '_', '~~', '~', '`']
+let mdSymbols = ['](', '] (', '***', '**', '*', '__', '_', '~~', '~', '`']
 
 Bot.ContentToMarkdown = async function (e, content, button = []) {
   /** 数组转字符串 */
   content = content.join('\r')
-  content += '喵～'
   /** 处理二笔语法，分割为数组 */
   content = parseMD(content)
 
@@ -32,7 +31,7 @@ async function CountFunction (e) {
 function parseMD (str) {
   /** 处理第一个标题 */
   str = str.replace(/^#/, '\r#').replace(/\n/g, '\r')
-  let msg = str.split(/(\]\(|\*\*\*|\*\*|\*|__|_|~~|~|`)/).filter(Boolean)
+  let msg = str.split(/(\]\(|\] \(|\*\*\*|\*\*|\*|__|_|~~|~|`)/).filter(Boolean)
 
   let result = []
   let temp = ''
@@ -59,15 +58,15 @@ async function sort (arr, e) {
   for (let i = 0; i < arr.length; i += 9) {
     if (Array.length) {
       // 处理第九张图
-      if (!mdSymbols.includes(arr[i])) {
-        Array[Array.length - 1][9] = arr[i]
-        i++
-      } else if (arr[i - 1].match(/!\[/)) {
+      if (arr[i - 1].match(/\[/)) {
         Array[Array.length - 1][9] = arr[i].substring(0, arr[i].indexOf(')') + 1)
         arr[i] = arr[i].substring(arr[i].indexOf(')') + 1)
+      } else {
+        Array[Array.length - 1][9] = arr[i]
+        i++
       }
     }
-    if (!arr.slice(i, i + 9).length) break
+    if (!arr[i]) break
     Array.push(arr.slice(i, i + 9))
 
     /** 加入自适应的消息头部 */
@@ -79,6 +78,7 @@ async function sort (arr, e) {
       }
     }
   }
+  Array[Array.length - 1][Array[Array.length - 1].length - 1] += '喵～'
   return Array
 }
 
@@ -101,7 +101,7 @@ async function combination (e, data, but) {
       params
     }
 
-    logger.debug(params)
+    logger.info(params)
 
     /** 按钮 */
     const button = await Button(e)
