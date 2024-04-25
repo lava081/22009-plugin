@@ -49,7 +49,6 @@ export class giveNickname extends plugin {
   async segmentAt (e) {
     if (e.adapter == 'QQBot') {
       if (e.group) {
-        this.e.group.getMemberMap = async () => await this.getMemberMap(e.group_id)
         const qq = e.msg.split('@')
         qq.shift()
         for (let i in qq) {
@@ -84,6 +83,7 @@ export class giveNickname extends plugin {
         this.e.user_id = user.qq
         this.e.author.id = user.qq
       }
+      this.e.group.getMemberMap = async () => await this.getMemberMap(e.group_id)
     }
     return false
   }
@@ -103,29 +103,28 @@ export class giveNickname extends plugin {
       Promise.reject(new Error('22009获取成员失败'))
     }
     member_list.forEach(user => {
-      if (user && user.qq != 8888) {
-        group_Member.set(user.qq, {
-          group_id,
-          user_id: user.qq,
-          user_openid: user.user_id,
-          nickname: user.nickname,
-          card: '',
-          sex: 'unknown',
-          age: 0,
-          area: '',
-          join_time: Math.floor(user.createdAt.getTime() / 1000),
-          last_sent_time: Math.floor(user.updatedAt.getTime() / 1000),
-          level: 1,
-          role: 'member',
-          unfriendly: true,
-          title: '',
-          title_expire_time: 0,
-          shutup_time: 0,
-          update_time: 0,
-          card_changeable: false,
-          uin: user.self_id
-        })
-      }
+      if (!user.qq || user.qq == 8888) user.qq = user.user_id
+      group_Member.set(user.qq, {
+        group_id,
+        user_id: user.qq,
+        user_openid: user.user_id,
+        nickname: user.nickname,
+        card: '',
+        sex: 'unknown',
+        age: 0,
+        area: '',
+        join_time: Math.floor(user.createdAt.getTime() / 1000),
+        last_sent_time: Math.floor(user.updatedAt.getTime() / 1000),
+        level: 1,
+        role: 'member',
+        unfriendly: true,
+        title: '',
+        title_expire_time: 0,
+        shutup_time: 0,
+        update_time: 0,
+        card_changeable: false,
+        uin: user.self_id
+      })
     })
     return group_Member
   }
