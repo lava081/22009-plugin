@@ -49,26 +49,25 @@ export class giveNickname extends plugin {
   async segmentAt (e) {
     if (e.adapter == 'QQBot') {
       if (e.group) {
-        Bot[e.self_id].pickGroup(e.group_id).getMemberMap = async () => await this.getMemberMap(e.group_id)
-      }
-      const qq = e.msg.split('@')
-      qq.shift()
-      for (let i in qq) {
-        this.e.msg = e.msg.replace(`@${qq[i]}`, '')
-        this.e.message[0].text.replace(`@${qq[i]}`, '')
-        if (Number(qq[i])) {
-          const user = await Openid.User.findOne({ where: { qq: qq[i], self_id: e.self_id } })
-          const nickname = user ? user.nickname : ''
-          this.e.message.push({ type: 'at', qq: Number(qq[i]), text: nickname })
-        } else {
-          const user = await Openid.User.findOne({ where: { nickname: qq[i], self_id: e.self_id } })
+        this.e.group.getMemberMap = async () => await this.getMemberMap(e.group_id)
+        const qq = e.msg.split('@')
+        qq.shift()
+        for (let i in qq) {
+          let user
+          if (Number(qq[i])) {
+            user = await Openid.User.findOne({ where: { qq: qq[i], self_id: e.self_id } })
+          } else {
+            user = await Openid.User.findOne({ where: { nickname: qq[i], self_id: e.self_id } })
+          }
           if (user && user.qq != 8888) {
+            this.e.msg = e.msg.replace(`@${qq[i]}`, '')
+            this.e.message[0].text.replace(`@${qq[i]}`, '')
             this.e.message.push({ type: 'at', qq: user.qq, text: user.nickname })
           }
         }
       }
+      return false
     }
-    return false
   }
 
   async giveNickname (e) {
